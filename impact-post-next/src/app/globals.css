@@ -10,7 +10,8 @@
   --color-brand-dark: #1a1a1a;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-heavy: var(--font-archivo-black), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   --shadow-hard-sm: 2px 2px 0px #000;
@@ -52,7 +53,8 @@
   }
 
   .font-heavy {
-    font-weight: 900;
+    font-family: var(--font-heavy);
+    font-weight: 400;
   }
 
   .ticker-wrap {
