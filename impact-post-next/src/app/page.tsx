@@ -4,7 +4,9 @@ import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide
 import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
 import { FEATURED_STORY, RECENT_STORIES, EVENTS } from '@/lib/data';
-import { CONTENT_PILLARS } from '@/lib/constants';
+import YouthBoy from '@/assets/images/youth-boy.jpg';
+import YouthGirl from '@/assets/images/youth-girl.jpg';
+import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
 
 export default function HomePage() {
   return (
@@ -139,18 +141,18 @@ export default function HomePage() {
               </div>
             </div>
             <div className="md:w-1/2 grid grid-cols-2 gap-4">
-              <div className="relative h-64 -rotate-3 hover:rotate-0 transition-transform duration-300 border-4 border-brand-yellow rounded-xl overflow-hidden">
+              <div className="relative h-64 border-4 border-brand-yellow rounded-xl overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1617056239820-8ce90ba48193?auto=format&fit=crop&w=400&q=80"
+                  src={YouthBoy}
                   alt="Youth spotlight"
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
               </div>
-              <div className="relative h-64 rotate-6 hover:rotate-0 transition-transform duration-300 border-4 border-brand-teal rounded-xl overflow-hidden translate-y-8">
+              <div className="relative h-64 border-4 border-brand-teal rounded-xl overflow-hidden translate-y-8">
                 <Image
-                  src="https://images.unsplash.com/photo-1754774674834-d3fde3387e4d?auto=format&fit=crop&w=400&q=80"
+                  src={YouthGirl}
                   alt="Youth spotlight"
                   fill
                   className="object-cover"
@@ -182,7 +184,7 @@ export default function HomePage() {
               </div>
               <div className="relative w-full h-[400px] border-2 border-black shadow-hard overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1515466763569-3d6c9775247b?auto=format&fit=crop&w=800&q=80"
+                  src={MultimediaCover}
                   alt="Video cover"
                   fill
                   className="object-cover"
