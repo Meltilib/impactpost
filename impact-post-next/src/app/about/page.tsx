@@ -13,10 +13,10 @@ export const metadata: Metadata = {
 };
 
 const teamMembers = [
-  { name: 'Hodan Ali', role: 'Editor-in-Chief', img: 201 },
-  { name: 'Liban Farah', role: 'Head of Multimedia', img: 202 },
-  { name: 'Sahra Mohamed', role: 'Culture Editor', img: 203 },
-  { name: 'Dr. Yasmin Elmi', role: 'Community Liaison', img: 205 },
+  { name: 'Hodan Ali', role: 'Editor-in-Chief', img: '/images/avatar-1.jpg' },
+  { name: 'Liban Farah', role: 'Head of Multimedia', img: '/images/avatar-2.jpg' },
+  { name: 'Sahra Mohamed', role: 'Culture Editor', img: '/images/avatar-3.jpg' },
+  { name: 'Dr. Yasmin Elmi', role: 'Community Liaison', img: '/images/avatar-5.jpg' },
 ];
 
 const missionPoints = [
@@ -58,7 +58,7 @@ export default function AboutPage() {
               <div className="absolute top-4 left-4 w-full h-full bg-brand-teal border-2 border-black" />
               <div className="relative z-10 w-full aspect-[4/3] border-2 border-black shadow-hard-sm overflow-hidden">
                 <Image 
-                  src="https://picsum.photos/800/600?random=about1" 
+                  src="/images/about-community.jpg" 
                   alt="Community gathering" 
                   fill
                   className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
@@ -111,7 +111,7 @@ export default function AboutPage() {
                   <div className="absolute inset-0 bg-brand-yellow translate-x-2 translate-y-2 rounded-full border-2 border-black hidden group-hover:block transition-all" />
                   <div className="relative z-10 w-24 h-24 rounded-full border-2 border-black overflow-hidden">
                     <Image 
-                      src={`https://picsum.photos/200/200?random=${member.img}`} 
+                      src={member.img} 
                       alt={member.name}
                       fill
                       className="object-cover"
