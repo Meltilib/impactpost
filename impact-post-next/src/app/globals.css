@@ -60,9 +60,6 @@
   .ticker-wrap {
     width: 100%;
     overflow: hidden;
-    background: linear-gradient(90deg, #fbbf24, #f97316, #7c3aed, #14b8a6, #fbbf24);
-    background-size: 200% 100%;
-    animation: gradient 8s linear infinite;
   }
 
   .ticker {
