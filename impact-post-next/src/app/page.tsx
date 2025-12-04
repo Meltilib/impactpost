@@ -4,6 +4,7 @@ import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide
 import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
 import { FEATURED_STORY, RECENT_STORIES, EVENTS } from '@/lib/data';
+import { CONTENT_PILLARS } from '@/lib/constants';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
 import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
