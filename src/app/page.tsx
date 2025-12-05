@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide-react';
 import { ArticleCard } from '@/components/articles/article-card';
+import { AdBanner } from '@/components/ui/ad-banner';
 import { Button } from '@/components/ui/button';
 import { CONTENT_PILLARS } from '@/lib/constants';
 import { fetchFeaturedStory, fetchRecentStories, fetchEvents } from '@/lib/sanity/fetch';
@@ -21,6 +22,11 @@ export default async function HomePage() {
   ]);
   return (
     <div className="animate-in">
+      {/* Leaderboard Ad Slot */}
+      <section className="container mx-auto px-4 pt-8">
+        <AdBanner format="leaderboard" className="w-full min-h-[120px]" />
+      </section>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -40,6 +46,9 @@ export default async function HomePage() {
                 ))}
               </div>
             </div>
+
+            {/* Sidebar Ad Slot (MPU) */}
+            <AdBanner format="sidebar" className="h-[250px] w-full" />
             
             {/* Newsletter Mini */}
             <div className="bg-brand-purple text-white p-6 border-2 border-black shadow-hard">
@@ -118,7 +127,16 @@ export default async function HomePage() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-          {recentStories.map(story => (
+          {recentStories.slice(0, 4).map(story => (
+            <ArticleCard key={story.id} story={story} />
+          ))}
+
+          {/* In-Feed Ad Slot */}
+          <div className="md:col-span-2 relative">
+            <AdBanner format="feed" className="h-full min-h-[300px]" />
+          </div>
+
+          {recentStories.slice(4).map(story => (
             <ArticleCard key={story.id} story={story} />
           ))}
         </div>
