@@ -1,0 +1,159 @@
+import { defineType, defineField } from 'sanity';
+
+export const article = defineType({
+  name: 'article',
+  title: 'Article',
+  type: 'document',
+  groups: [
+    { name: 'content', title: 'Content', default: true },
+    { name: 'meta', title: 'Meta & SEO' },
+  ],
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Title',
+      type: 'string',
+      group: 'content',
+      validation: (Rule) => Rule.required().max(100),
+    }),
+    defineField({
+      name: 'subtitle',
+      title: 'Subtitle / Deck',
+      type: 'string',
+      group: 'content',
+      description: 'Optional subtitle that appears below the headline',
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      group: 'content',
+      options: { source: 'title', maxLength: 96 },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'author',
+      title: 'Author',
+      type: 'reference',
+      to: [{ type: 'author' }],
+      group: 'content',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'mainImage',
+      title: 'Hero Image',
+      type: 'image',
+      group: 'content',
+      options: { hotspot: true },
+      fields: [
+        {
+          name: 'alt',
+          type: 'string',
+          title: 'Alt Text',
+          description: 'Important for accessibility and SEO',
+        },
+      ],
+    }),
+    defineField({
+      name: 'category',
+      title: 'Content Pillar',
+      type: 'reference',
+      to: [{ type: 'category' }],
+      group: 'content',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      of: [{ type: 'string' }],
+      group: 'content',
+      options: { layout: 'tags' },
+    }),
+    defineField({
+      name: 'excerpt',
+      title: 'Excerpt',
+      type: 'text',
+      rows: 3,
+      group: 'content',
+      description: 'Brief summary for cards and SEO (auto-generated if empty)',
+      validation: (Rule) => Rule.max(300),
+    }),
+    defineField({
+      name: 'body',
+      title: 'Content',
+      type: 'blockContent',
+      group: 'content',
+    }),
+    defineField({
+      name: 'publishedAt',
+      title: 'Publish Date',
+      type: 'datetime',
+      group: 'content',
+      initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: 'isFeatured',
+      title: 'Featured Article',
+      type: 'boolean',
+      group: 'content',
+      description: 'Display as the main featured story on homepage',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'seo',
+      title: 'SEO Settings',
+      type: 'object',
+      group: 'meta',
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        {
+          name: 'metaTitle',
+          type: 'string',
+          title: 'Meta Title',
+          description: 'Defaults to article title if empty',
+        },
+        {
+          name: 'metaDescription',
+          type: 'text',
+          title: 'Meta Description',
+          description: 'Defaults to excerpt if empty',
+          rows: 2,
+        },
+        {
+          name: 'socialImage',
+          type: 'image',
+          title: 'Social Share Image',
+          description: 'Defaults to hero image if empty',
+        },
+      ],
+    }),
+  ],
+  orderings: [
+    {
+      title: 'Publish Date, New',
+      name: 'publishedAtDesc',
+      by: [{ field: 'publishedAt', direction: 'desc' }],
+    },
+    {
+      title: 'Publish Date, Old',
+      name: 'publishedAtAsc',
+      by: [{ field: 'publishedAt', direction: 'asc' }],
+    },
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      author: 'author.name',
+      category: 'category.title',
+      media: 'mainImage',
+    },
+    prepare({ title, author, category, media }) {
+      return {
+        title,
+        subtitle: `${category || 'No category'} • ${author || 'No author'}`,
+        media,
+      };
+    },
+  },
+});
