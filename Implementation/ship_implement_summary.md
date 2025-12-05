@@ -1,82 +1,84 @@
-# Nutika Implementation Summary
+# IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 3
+- **Total Implementations**: 1
 - **Success Rate**: 100%
-- **Average Duration**: 1.3 hours
-- **Focus Areas**: 🔧 Engineering (60%), 🤖 AI/ML (20%), 🎨 UI/UX (15%), 🐛 Bug Fixes (5%)
-
-
+- **Focus Areas**: 🔧 Engineering (70%), 📦 CMS (30%)
 
 ---
 
-🚀 #03 2025-12-01T10:00 | Onboarding-Asset-Pipeline-Performance | ✅ 60m | 🚀performance | 🔧engineering | 📁10f
-   • Replaced 6.6MB onboarding PNG payload with optimized JPEGs (~0.63MB) to cut bundle/export time.
-   • Added reproducible optimizer + size budgets (`assets:optimize`, `assets:check`) using Sharp with macOS `sips` fallback; wired into `ci`.
-   • Enabled Hermes explicitly and Metro `inlineRequires`; updated onboarding screens to reference optimized assets and documented commands.
+🚀 #01 2025-12-04 | Phase-2-Sanity-CMS-Integration | ✅ 90m | 📦cms | 🔧engineering | 📁25f
+   • Integrated Sanity.io headless CMS with zero visual changes to Neo-Brutalist design.
+   • Created content schemas (Article, Author, Category, Event) with Portable Text rich editor.
+   • Implemented smart data fetching with static fallback when Sanity isn't configured.
+   • Added ISR (60s revalidation) and webhook-based on-demand revalidation.
 
-   📁 **Files Modified** (10):
-   - scripts/optimize-onboarding-images.js - NEW: build-time optimizer
-   - scripts/check-onboarding-size.js - NEW: size budgets
-   - package.json - Asset scripts + sharp devDependency
-   - metro.config.js - NEW: inlineRequires
-   - app.config.ts - Explicit Hermes toggle
-   - AGENTS.md - Document asset commands
-   - app/(onboarding)/hero.tsx - JPEG asset
-   - app/(onboarding)/benefits.tsx - JPEG asset
-   - app/index.tsx - Optimized welcome image
-   - assets/onboarding/*.jpg - Optimized artwork
-
-   ⚙️ **Functions Added/Modified** (4):
-   - assetPipeline() - Resize/convert onboarding art
-   - assetBudgetCheck() - Enforce per-file/total limits
-   - hermesInlineRequires() - Startup performance tuning
-   - onboardingImageRefs() - Updated asset imports
-
----
-
-🧪 #01 2025-11-28T12:00 | Deep-Safety-Analysis-And-Snap-Go-UI | ✅ 120m | 🧠ai | 🎨ui/ux | 📁6f | ⚡performance
-   • Implemented "Deep Safety" analysis (Toxicology) via AI prompting, correlating packaging/ingredients with known toxins (BPA, Heavy Metals) to simulate "Lab Data".
-   • Replaced scanning UX with "Snap & Go" continuous flow: Front -> Back -> Analyze instantly, removing intermediate reviews.
-   • Added premium polish: Fly-to-stack animations (Reanimated), Haptic feedback, and a unified Camera Viewfinder with Gallery support.
-   • Fixed logic loops in scan state management to prevent data loss when switching contexts.
+   📁 **Files Created** (19):
+   - sanity/sanity.config.ts - Sanity Studio configuration
+   - sanity/sanity.cli.ts - CLI configuration
+   - sanity/schemaTypes/index.ts - Schema exports
+   - sanity/schemaTypes/article.ts - Article schema with SEO fields
+   - sanity/schemaTypes/author.ts - Author/journalist schema
+   - sanity/schemaTypes/category.ts - Content pillar schema
+   - sanity/schemaTypes/event.ts - Event schema
+   - sanity/schemaTypes/blockContent.ts - Rich text schema
+   - src/lib/sanity/client.ts - Conditional Sanity client
+   - src/lib/sanity/queries.ts - GROQ queries
+   - src/lib/sanity/mappers.ts - Sanity-to-TypeScript mappers
+   - src/lib/sanity/image.ts - Image URL builder
+   - src/lib/sanity/fetch.ts - Smart data fetching with fallback
+   - src/lib/sanity/index.ts - Barrel exports
+   - src/components/portable-text.tsx - Design-matched rich text renderer
+   - src/app/api/preview/route.ts - Draft mode API
+   - src/app/api/disable-draft/route.ts - Exit preview API
+   - src/app/api/revalidate/route.ts - Webhook revalidation API
+   - .env.example - Environment variable template
 
    📁 **Files Modified** (6):
-   - schemas/analysis.schema.ts - Added `safety` object for toxicology data
-   - supabase/functions/ai-analyze/index.ts - Injected Toxicology Protocol into AI prompt
-   - hooks/useScanFlow.ts - Refactored for continuous state machine
-   - app/(tabs)/scan.tsx - Implemented Snap & Go UI, Animations, Haptics
-   - babel.config.js - Added Reanimated plugin
-   - package.json - Installed expo-camera
+   - src/app/page.tsx - Async Sanity fetching with ISR
+   - src/app/news/page.tsx - Async Sanity fetching with ISR
+   - src/app/news/[slug]/page.tsx - Sanity + Portable Text support
+   - src/app/section/[category]/page.tsx - Async Sanity fetching
+   - package.json - Sanity deps + scripts
+   - (dependencies) - sanity, next-sanity, @sanity/client, @portabletext/react
 
-   ⚙️ **Functions Added/Modified** (4):
-   - useScanFlow() - Refactored for IDLE/CAPTURING states
-   - handleCapture() - New continuous capture logic with animation/haptics
-   - handleGallery() - Robust gallery upload with feedback
-   - System Prompt - Added Toxicology/Deep Safety correlation rules
+   ⚙️ **Key Functions Added** (8):
+   - fetchFeaturedStory() - Fetch with static fallback
+   - fetchRecentStories() - Fetch recent articles
+   - fetchAllStories() - Fetch all articles
+   - fetchStoryBySlug() - Single article with body
+   - fetchStoriesByCategory() - Category filtering
+   - fetchEvents() - Events listing
+   - mapSanityArticle() - Document-to-type mapping
+   - ArticleBody() - Portable Text renderer
+
+   🏗️ **Architecture**:
+   - Graceful fallback: Site works with static data until Sanity configured
+   - ISR: 60-second revalidation on dynamic routes
+   - Webhook: `/api/revalidate` for instant updates on publish
+   - Design preserved: Zero changes to existing components/styles
 
 ---
 
-🧪 #02 2025-11-28T18:00 | Toxicology-Accuracy-Babel-Fix | ✅ 45m | 🔧build | 🧠ai | 🎨ui/ux | 📁4f | 📊accuracy
-   • Fixed iOS bundling failure: Removed duplicate `react-native-worklets/plugin` from babel.config.js (bundled in Reanimated v4+).
-   • Upgraded toxicology from AI-prompt-only to **deterministic, FDA/EPA-backed detection** with accurate risk levels.
-   • Mercury in fish now correctly differentiates: Bigeye/shark=HIGH, Albacore=MEDIUM, Light tuna=LOW.
-   • Added SafetyCard UI component to display toxicology findings with source citations in results screen.
+## Migration Progress
 
-   📁 **Files Modified** (4):
-   - babel.config.js - Removed duplicate worklets plugin (Reanimated v4+ fix)
-   - supabase/functions/ai-analyze/index.ts - Added `detectToxicologyRisks()` with FDA/EPA data
-   - components/SafetyCard.tsx - NEW: Displays hazards with risk colors and sources
-   - app/results/[scanId].tsx - Integrated SafetyCard between StatusCards and NutritionTable
+### Phase 1: Foundation ✅ (Completed prior)
+- Vite to Next.js 15 App Router migration
+- SEO metadata, sitemap, robots.txt
+- Core pages and components
 
-   ⚙️ **Functions Added/Modified** (3):
-   - detectToxicologyRisks() - NEW: Deterministic FDA/EPA-based hazard detection
-   - sanitizeAnalysis() - Enhanced to validate safety field
-   - SafetyCard - NEW: UI component for toxicology display
+### Phase 2: Content & Data Layer ✅ (This session)
+- Sanity CMS integration
+- Content schemas
+- ISR + revalidation
+- Preview mode
 
-   📊 **Risk Matrix Sources**:
-   - FDA/EPA 2024 Fish Advisory (Mercury levels by species)
-   - EFSA BPA Assessment (EU ban 2025)
-   - Consumer Reports 2024 (Heavy metals in chocolate)
-   - FDA Closer to Zero (Arsenic in rice)
-   - FDA Red 3 Ban (Jan 2025), BVO Ban (2024)
+### Phase 3: Performance Optimization 🔜
+- Image optimization
+- Font optimization
+- Bundle analysis
+
+### Phase 4: Features & Integration 🔜
+- Newsletter integration
+- Search implementation
+- Analytics setup

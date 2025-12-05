@@ -6,14 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sanity:dev": "cd sanity && npx sanity dev",
+    "sanity:deploy": "cd sanity && npx sanity deploy"
   },
   "dependencies": {
+    "@portabletext/react": "^5.0.0",
+    "@sanity/client": "^7.13.1",
+    "@sanity/image-url": "^2.0.2",
+    "@sanity/vision": "^4.20.3",
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
     "next": "16.0.7",
+    "next-sanity": "^11.6.10",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "sanity": "^4.20.3",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

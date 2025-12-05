@@ -3,13 +3,22 @@ import Image from 'next/image';
 import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide-react';
 import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
-import { FEATURED_STORY, RECENT_STORIES, EVENTS } from '@/lib/data';
 import { CONTENT_PILLARS } from '@/lib/constants';
+import { fetchFeaturedStory, fetchRecentStories, fetchEvents } from '@/lib/sanity/fetch';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
 import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
 
-export default function HomePage() {
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
+
+export default async function HomePage() {
+  // Fetch data from Sanity (falls back to static data if Sanity not configured)
+  const [featuredStory, recentStories, events] = await Promise.all([
+    fetchFeaturedStory(),
+    fetchRecentStories(),
+    fetchEvents(),
+  ]);
   return (
     <div className="animate-in">
       {/* Hero Section */}
@@ -17,7 +26,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Feature */}
           <div className="lg:col-span-8">
-            <ArticleCard story={FEATURED_STORY} featured />
+            <ArticleCard story={featuredStory} featured />
           </div>
           
           {/* Sidebar / Top Picks */}
@@ -26,7 +35,7 @@ export default function HomePage() {
               <div className="absolute -right-4 -top-4 w-20 h-20 bg-white rounded-full opacity-50 blur-xl" />
               <h3 className="font-heavy text-2xl mb-4 uppercase">Community Pulse</h3>
               <div className="flex flex-col divide-y-2 divide-black/10">
-                {RECENT_STORIES.slice(0, 3).map(story => (
+                {recentStories.slice(0, 3).map(story => (
                   <ArticleCard key={story.id} story={story} minimal />
                 ))}
               </div>
@@ -109,7 +118,7 @@ export default function HomePage() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-          {RECENT_STORIES.map(story => (
+          {recentStories.map(story => (
             <ArticleCard key={story.id} story={story} />
           ))}
         </div>
@@ -207,7 +216,7 @@ export default function HomePage() {
                 <Calendar size={20} />
               </div>
               <div className="divide-y-2 divide-black">
-                {EVENTS.map(event => (
+                {events.map(event => (
                   <div 
                     key={event.id} 
                     className="p-4 hover:bg-brand-yellow/10 transition-colors group cursor-pointer"

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { ArticleCard } from '@/components/articles/article-card';
-import { getAllStories } from '@/lib/data';
+import { fetchAllStories } from '@/lib/sanity/fetch';
 
 export const metadata: Metadata = {
   title: 'Latest News',
@@ -11,8 +11,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function NewsPage() {
-  const stories = getAllStories();
+// Enable ISR - revalidate every 60 seconds
+export const revalidate = 60;
+
+export default async function NewsPage() {
+  const stories = await fetchAllStories();
 
   return (
     <div className="animate-in">

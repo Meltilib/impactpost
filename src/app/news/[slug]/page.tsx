@@ -2,26 +2,33 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Clock, Twitter, Facebook, Linkedin, Bookmark } from 'lucide-react';
-import { getStoryBySlug, getAllStories, RECENT_STORIES } from '@/lib/data';
+import { fetchStoryBySlug, fetchRecentStories, fetchArticleSlugs } from '@/lib/sanity/fetch';
 import { ArticleCard } from '@/components/articles/article-card';
+import { ArticleBody } from '@/components/portable-text';
 import { Button } from '@/components/ui/button';
 import { SITE_CONFIG } from '@/lib/constants';
 import { getCategoryColor } from '@/lib/utils';
+import type { PortableTextBlock } from '@portabletext/types';
+import type { Story } from '@/types';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Enable ISR
+export const revalidate = 60;
+
 export async function generateStaticParams() {
-  const stories = getAllStories();
-  return stories.map((story) => ({
-    slug: story.slug,
+  const slugs = await fetchArticleSlugs();
+  return slugs.map((slug) => ({
+    slug,
   }));
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const story = getStoryBySlug(slug);
+  const result = await fetchStoryBySlug(slug);
+  const story = result?.story;
 
   if (!story) {
     return {
@@ -57,7 +64,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   };
 }
 
-function ArticleJsonLd({ story }: { story: NonNullable<ReturnType<typeof getStoryBySlug>> }) {
+function ArticleJsonLd({ story }: { story: Story }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -95,13 +102,18 @@ function ArticleJsonLd({ story }: { story: NonNullable<ReturnType<typeof getStor
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const story = getStoryBySlug(slug);
+  const [result, recentStories] = await Promise.all([
+    fetchStoryBySlug(slug),
+    fetchRecentStories(),
+  ]);
 
-  if (!story) {
+  if (!result) {
     notFound();
   }
 
-  const relatedStories = RECENT_STORIES.filter(s => s.id !== story.id).slice(0, 3);
+  const { story, body } = result;
+  const relatedStories = recentStories.filter(s => s.id !== story.id).slice(0, 3);
+  const hasPortableTextBody = body && Array.isArray(body) && body.length > 0;
 
   return (
     <>
@@ -209,35 +221,40 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </figcaption>
             </figure>
 
-            <div className="prose prose-lg md:prose-xl">
-              <p className="lead font-bold text-gray-800 text-xl first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left">
-                Community resilience is not just a buzzword here; it&apos;s the foundation upon which this neighborhood was rebuilt. Walking down 4th street, you can feel the energy shift.
-              </p>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-              </p>
-              <h3>A New Approach to Local Leadership</h3>
-              <p>
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
-              </p>
-              <blockquote className="border-l-4 border-brand-coral pl-6 italic text-2xl font-display my-8 bg-gray-50 p-4 rounded-r-xl">
-                &quot;We aren&apos;t waiting for permission to change our reality. We are building the future we deserve, brick by brick.&quot;
-              </blockquote>
-              <p>
-                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
-              </p>
-              <div className="bg-brand-teal/10 p-6 border-l-4 border-brand-teal my-8">
-                <h4 className="font-bold text-brand-teal uppercase tracking-widest text-sm mb-2">Key Takeaways</h4>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>Local funding has increased by 40% since the initiative started.</li>
-                  <li>Youth engagement programs are now mandatory in 3 district schools.</li>
-                  <li>The community garden provides 500lbs of produce monthly.</li>
-                </ul>
+            {/* Article Content - Sanity Portable Text or Static Fallback */}
+            {hasPortableTextBody ? (
+              <ArticleBody content={body as PortableTextBlock[]} />
+            ) : (
+              <div className="prose prose-lg md:prose-xl">
+                <p className="lead font-bold text-gray-800 text-xl first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left">
+                  Community resilience is not just a buzzword here; it&apos;s the foundation upon which this neighborhood was rebuilt. Walking down 4th street, you can feel the energy shift.
+                </p>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                </p>
+                <h3>A New Approach to Local Leadership</h3>
+                <p>
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+                </p>
+                <blockquote className="border-l-4 border-brand-coral pl-6 italic text-2xl font-display my-8 bg-gray-50 p-4 rounded-r-xl">
+                  &quot;We aren&apos;t waiting for permission to change our reality. We are building the future we deserve, brick by brick.&quot;
+                </blockquote>
+                <p>
+                  Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
+                </p>
+                <div className="bg-brand-teal/10 p-6 border-l-4 border-brand-teal my-8">
+                  <h4 className="font-bold text-brand-teal uppercase tracking-widest text-sm mb-2">Key Takeaways</h4>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li>Local funding has increased by 40% since the initiative started.</li>
+                    <li>Youth engagement programs are now mandatory in 3 district schools.</li>
+                    <li>The community garden provides 500lbs of produce monthly.</li>
+                  </ul>
+                </div>
+                <p>
+                  Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.
+                </p>
               </div>
-              <p>
-                Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.
-              </p>
-            </div>
+            )}
 
             {/* Tags */}
             {story.tags && story.tags.length > 0 && (

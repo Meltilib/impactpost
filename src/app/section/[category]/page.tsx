@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
-import { getStoriesByCategory } from '@/lib/data';
+import { fetchStoriesByCategory, fetchCategorySlugs } from '@/lib/sanity/fetch';
 import { SECTIONS } from '@/lib/constants';
 import Link from 'next/link';
 
@@ -10,8 +10,15 @@ interface SectionPageProps {
   params: Promise<{ category: string }>;
 }
 
+// Enable ISR
+export const revalidate = 60;
+
 export async function generateStaticParams() {
-  return Object.keys(SECTIONS).map((category) => ({
+  const slugs = await fetchCategorySlugs();
+  // Combine with static sections
+  const staticSlugs = Object.keys(SECTIONS);
+  const allSlugs = [...new Set([...slugs, ...staticSlugs])];
+  return allSlugs.map((category) => ({
     category,
   }));
 }
@@ -44,7 +51,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
     notFound();
   }
 
-  const stories = getStoriesByCategory(category);
+  const stories = await fetchStoriesByCategory(category);
 
   return (
     <div className="animate-in">
