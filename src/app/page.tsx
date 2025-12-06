@@ -51,7 +51,7 @@ export default async function HomePage() {
                 <input 
                   type="email"
                   required
-                  className="w-full p-2 text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow" 
+                  className="w-full p-2 text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow bg-white" 
                   placeholder="Email address" 
                 />
                 <button 
@@ -64,6 +64,23 @@ export default async function HomePage() {
               </form>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Latest Stories Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="mb-10">
+          <h2 className="font-heavy text-4xl md:text-5xl mb-3">Latest Stories</h2>
+          <p className="text-xl text-gray-600 font-medium">
+            Voices from across the Canadian-Somali diaspora
+          </p>
+          <div className="h-1.5 bg-black mt-6 w-full" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+          {recentStories.map(story => (
+            <ArticleCard key={story.id} story={story} />
+          ))}
         </div>
       </section>
 
@@ -104,23 +121,6 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Latest Stories Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="mb-10">
-          <h2 className="font-heavy text-4xl md:text-5xl mb-3">Latest Stories</h2>
-          <p className="text-xl text-gray-600 font-medium">
-            Voices from across the Canadian-Somali diaspora
-          </p>
-          <div className="h-1.5 bg-black mt-6 w-full" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-          {recentStories.map(story => (
-            <ArticleCard key={story.id} story={story} />
-          ))}
         </div>
       </section>
 
