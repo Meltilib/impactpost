@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "sanity:dev": "cd sanity && npx sanity dev",
-    "sanity:deploy": "cd sanity && npx sanity deploy"
+    "sanity:deploy": "cd sanity && npx sanity deploy",
+    "sanity:migrate": "cd sanity && npm run migrate"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.0",

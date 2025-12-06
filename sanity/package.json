@@ -9,12 +9,16 @@
   "scripts": {
     "dev": "sanity dev",
     "start": "sanity start",
-    "build": "sanity build"
+    "build": "sanity build",
+    "migrate": "npx tsx ./scripts/migrate-data.ts"
   },
   "dependencies": {
+    "@sanity/client": "^7.13.1",
     "@sanity/vision": "^4.20.3",
+    "dotenv": "^17.2.3",
     "sanity": "^4.20.3",
-    "styled-components": "^6.1.19"
+    "styled-components": "^6.1.19",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/node": "^20",
