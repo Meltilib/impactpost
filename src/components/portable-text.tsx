@@ -21,6 +21,30 @@ interface LinkValue {
   openInNewTab?: boolean;
 }
 
+interface LeadParagraphValue {
+  _type: 'leadParagraph';
+  text: string;
+}
+
+interface StyledQuoteValue {
+  _type: 'styledQuote';
+  quote: string;
+  attribution?: string;
+  style: 'teal' | 'coral' | 'purple';
+}
+
+interface KeyTakeawaysValue {
+  _type: 'keyTakeaways';
+  items: string[];
+}
+
+interface CalloutBoxValue {
+  _type: 'calloutBox';
+  title?: string;
+  content: string;
+  variant: 'info' | 'warning' | 'success' | 'note';
+}
+
 const components: PortableTextComponents = {
   block: {
     h2: ({ children }) => (
@@ -84,6 +108,60 @@ const components: PortableTextComponents = {
             </figcaption>
           )}
         </figure>
+      );
+    },
+    leadParagraph: ({ value }: { value: LeadParagraphValue }) => (
+      <p className="mb-6 leading-relaxed text-xl text-gray-800 first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
+        {value.text}
+      </p>
+    ),
+    styledQuote: ({ value }: { value: StyledQuoteValue }) => {
+      const styles = {
+        teal: 'bg-brand-teal/10 border-brand-teal',
+        coral: 'bg-brand-coral/10 border-brand-coral',
+        purple: 'bg-brand-purple/10 border-brand-purple',
+      };
+      return (
+        <blockquote className={`border-l-4 p-6 my-8 italic text-xl font-display ${styles[value.style] || styles.teal}`}>
+          &ldquo;{value.quote}&rdquo;
+          {value.attribution && (
+            <cite className="block mt-4 text-sm not-italic font-bold">
+              &mdash; {value.attribution}
+            </cite>
+          )}
+        </blockquote>
+      );
+    },
+    keyTakeaways: ({ value }: { value: KeyTakeawaysValue }) => (
+      <div className="bg-brand-teal/10 border-l-4 border-brand-teal p-6 my-8">
+        <h4 className="text-brand-teal uppercase font-bold text-sm mb-4 tracking-widest">
+          Key Takeaways
+        </h4>
+        <ul className="space-y-2">
+          {value.items?.map((item, i) => (
+            <li key={i} className="flex gap-2 text-gray-800">
+              <span className="text-brand-teal">•</span> {item}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ),
+    calloutBox: ({ value }: { value: CalloutBoxValue }) => {
+      const variants = {
+        info: 'bg-blue-50 border-blue-500 text-blue-900',
+        warning: 'bg-yellow-50 border-yellow-500 text-yellow-900',
+        success: 'bg-green-50 border-green-500 text-green-900',
+        note: 'bg-gray-50 border-gray-500 text-gray-900',
+      };
+      return (
+        <div className={`border-l-4 p-6 my-8 ${variants[value.variant] || variants.info}`}>
+          {value.title && (
+            <h4 className="font-bold text-sm mb-2 uppercase tracking-wide">
+              {value.title}
+            </h4>
+          )}
+          <p>{value.content}</p>
+        </div>
       );
     },
   },

@@ -39,9 +39,9 @@ export const articlesQuery = groq`
   }
 `;
 
-// Fetch featured article
+// Fetch featured article (placement-based with fallback to isFeatured)
 export const featuredArticleQuery = groq`
-  *[_type == "article" && isFeatured == true && defined(slug.current)][0] {
+  *[_type == "article" && (placement == "featured-hero" || isFeatured == true) && defined(slug.current)] | order(displayOrder asc, publishedAt desc)[0] {
     _id,
     title,
     subtitle,
@@ -49,6 +49,7 @@ export const featuredArticleQuery = groq`
     excerpt,
     publishedAt,
     isFeatured,
+    placement,
     tags,
     mainImage {
       asset->{
@@ -78,9 +79,48 @@ export const featuredArticleQuery = groq`
   }
 `;
 
-// Fetch recent articles (excluding featured)
+// Fetch sidebar articles (Community Pulse section)
+export const sidebarArticlesQuery = groq`
+  *[_type == "article" && placement == "sidebar" && defined(slug.current)] | order(displayOrder asc, publishedAt desc)[0...3] {
+    _id,
+    title,
+    subtitle,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    placement,
+    tags,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      _id,
+      name,
+      role,
+      image {
+        asset->{
+          _id,
+          url
+        }
+      }
+    },
+    category->{
+      _id,
+      title,
+      "slug": slug.current,
+      color,
+      textColor
+    }
+  }
+`;
+
+// Fetch recent articles (grid placement or no placement, excluding featured/sidebar/hidden)
 export const recentArticlesQuery = groq`
-  *[_type == "article" && isFeatured != true && defined(slug.current)] | order(publishedAt desc)[0...8] {
+  *[_type == "article" && (placement == "grid" || !defined(placement) || placement == null) && placement != "hidden" && isFeatured != true && defined(slug.current)] | order(publishedAt desc)[0...8] {
     _id,
     title,
     subtitle,
@@ -88,6 +128,7 @@ export const recentArticlesQuery = groq`
     excerpt,
     publishedAt,
     isFeatured,
+    placement,
     tags,
     mainImage {
       asset->{

@@ -11,10 +11,16 @@
     "sanity:deploy": "cd sanity && npx sanity deploy"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.36.0",
     "@portabletext/react": "^5.0.0",
     "@sanity/client": "^7.13.1",
     "@sanity/image-url": "^2.0.2",
     "@sanity/vision": "^4.20.3",
+    "@tiptap/extension-image": "^3.13.0",
+    "@tiptap/extension-link": "^3.13.0",
+    "@tiptap/extension-placeholder": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
     "next": "16.0.7",

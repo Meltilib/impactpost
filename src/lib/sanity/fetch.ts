@@ -3,6 +3,7 @@ import { client, previewClient } from './client';
 import {
   featuredArticleQuery,
   recentArticlesQuery,
+  sidebarArticlesQuery,
   articlesQuery,
   articleBySlugQuery,
   articlesByCategoryQuery,
@@ -78,6 +79,25 @@ export async function fetchRecentStories(): Promise<Story[]> {
   
   // Fallback to static data
   return RECENT_STORIES;
+}
+
+// Fetch sidebar articles (Community Pulse section)
+export async function fetchSidebarStories(): Promise<Story[]> {
+  const sanityClient = await getClientForFetch();
+  
+  if (sanityClient) {
+    try {
+      const articles: SanityArticle[] = await sanityClient.fetch(sidebarArticlesQuery);
+      if (articles && articles.length > 0) {
+        return mapSanityArticles(articles);
+      }
+    } catch (error) {
+      console.error('Error fetching sidebar articles from Sanity:', error);
+    }
+  }
+  
+  // Fallback to static data - use first 3 recent stories
+  return RECENT_STORIES.slice(0, 3);
 }
 
 // Fetch all articles
