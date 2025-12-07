@@ -260,7 +260,7 @@ export async function createAuthor(payload: AuthorPayload) {
       return { success: false, error: 'Slug already in use' };
     }
 
-    const doc: Record<string, unknown> = {
+    const doc: Record<string, unknown> & { _type: string } = {
       _type: 'author',
       name: payload.name,
       slug: { _type: 'slug', current: payload.slug },
