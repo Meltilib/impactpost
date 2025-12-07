@@ -3,7 +3,7 @@
 import { ClerkProvider, UserButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, FolderOpen, Home, Plus, AlertTriangle } from 'lucide-react';
+import { Home, Plus, Users, FolderOpen, AlertTriangle } from 'lucide-react';
 
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 

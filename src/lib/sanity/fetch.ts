@@ -140,6 +140,10 @@ export async function fetchStoryBySlug(slug: string): Promise<{ story: Story; bo
     }
   }
   
+  if (!sanityClient) {
+    console.warn('[Sanity] Client not configured; falling back to static story data for slug:', slug);
+  }
+
   // Fallback to static data
   const story = getStoryBySlug(slug);
   if (story) {

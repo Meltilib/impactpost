@@ -8,6 +8,13 @@ import { ArticleBody } from '@/components/portable-text';
 import { Button } from '@/components/ui/button';
 import { SITE_CONFIG } from '@/lib/constants';
 import { getCategoryColor } from '@/lib/utils';
+import {
+  KEY_TAKEAWAYS_CARD,
+  KEY_TAKEAWAYS_ITEM,
+  KEY_TAKEAWAYS_TITLE,
+  STYLED_QUOTE_TEXT,
+  getStyledQuoteContainerClasses,
+} from '@/lib/article-block-styles';
 import type { PortableTextBlock } from '@portabletext/types';
 import type { Story } from '@/types';
 
@@ -236,18 +243,26 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <p>
                   Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
                 </p>
-                <blockquote className="border-l-4 border-brand-coral pl-6 italic text-2xl font-display my-8 bg-gray-50 p-4 rounded-r-xl">
-                  &quot;We aren&apos;t waiting for permission to change our reality. We are building the future we deserve, brick by brick.&quot;
-                </blockquote>
+                <div className={getStyledQuoteContainerClasses('coral')}>
+                  <blockquote className={STYLED_QUOTE_TEXT}>
+                    &ldquo;We aren&apos;t waiting for permission to change our reality. We are building the future we deserve, brick by brick.&rdquo;
+                  </blockquote>
+                </div>
                 <p>
                   Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
                 </p>
-                <div className="bg-brand-teal/10 p-6 border-l-4 border-brand-teal my-8">
-                  <h4 className="font-bold text-brand-teal uppercase tracking-widest text-sm mb-2">Key Takeaways</h4>
-                  <ul className="list-disc list-inside space-y-2">
-                    <li>Local funding has increased by 40% since the initiative started.</li>
-                    <li>Youth engagement programs are now mandatory in 3 district schools.</li>
-                    <li>The community garden provides 500lbs of produce monthly.</li>
+                <div className={KEY_TAKEAWAYS_CARD}>
+                  <h4 className={KEY_TAKEAWAYS_TITLE}>Key Takeaways</h4>
+                  <ul className="space-y-2">
+                    <li className={KEY_TAKEAWAYS_ITEM}>
+                      <span className="text-brand-teal">•</span> Local funding has increased by 40% since the initiative started.
+                    </li>
+                    <li className={KEY_TAKEAWAYS_ITEM}>
+                      <span className="text-brand-teal">•</span> Youth engagement programs are now mandatory in 3 district schools.
+                    </li>
+                    <li className={KEY_TAKEAWAYS_ITEM}>
+                      <span className="text-brand-teal">•</span> The community garden provides 500lbs of produce monthly.
+                    </li>
                   </ul>
                 </div>
                 <p>

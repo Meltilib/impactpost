@@ -57,6 +57,18 @@
     font-weight: 400;
   }
 
+  .bg-quote-teal {
+    background-color: rgba(20, 184, 166, 0.26);
+  }
+
+  .bg-quote-coral {
+    background-color: rgba(249, 115, 22, 0.26);
+  }
+
+  .bg-quote-purple {
+    background-color: rgba(124, 58, 237, 0.26);
+  }
+
   .ticker-wrap {
     width: 100%;
     overflow: hidden;
@@ -105,6 +117,10 @@
 
   .prose blockquote {
     @apply border-l-4 border-brand-coral pl-6 italic my-8;
+  }
+
+  .prose blockquote.styled-quote-block {
+    @apply border-l-0 pl-0 my-0;
   }
 
   .prose ul, .prose ol {

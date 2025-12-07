@@ -13,6 +13,11 @@
 - Build: `npm run build`; start output with `npm run start`.
 - Lint: `npm run lint` (ESLint + Next.js rules).
 
+## Planning 
+- Always explain your findings in simple english. 
+- When you generate a plan always explain the step in simple english , and add a why section and benefit section for each step. 
+- when you plan consider how the changes will affect the rest of the codebase. 
+
 ## Coding Style & Naming
 - TypeScript in `strict` mode; favor `const` and typed props.
 - Components are functional; kebab-case filenames, PascalCase exports.

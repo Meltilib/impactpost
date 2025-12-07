@@ -4,6 +4,14 @@ import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import type { PortableTextBlock } from '@portabletext/types';
 import Image from 'next/image';
 import { urlFor } from '@/lib/sanity/image';
+import {
+  KEY_TAKEAWAYS_CARD,
+  KEY_TAKEAWAYS_ITEM,
+  KEY_TAKEAWAYS_TITLE,
+  STYLED_QUOTE_ATTRIBUTION,
+  STYLED_QUOTE_TEXT,
+  getStyledQuoteContainerClasses,
+} from '@/lib/article-block-styles';
 
 interface ImageValue {
   _type: 'image';
@@ -116,30 +124,27 @@ const components: PortableTextComponents = {
       </p>
     ),
     styledQuote: ({ value }: { value: StyledQuoteValue }) => {
-      const styles = {
-        teal: 'bg-brand-teal/10 border-brand-teal',
-        coral: 'bg-brand-coral/10 border-brand-coral',
-        purple: 'bg-brand-purple/10 border-brand-purple',
-      };
       return (
-        <blockquote className={`border-l-4 p-6 my-8 italic text-xl font-display ${styles[value.style] || styles.teal}`}>
-          &ldquo;{value.quote}&rdquo;
+        <div className={getStyledQuoteContainerClasses(value.style)}>
+          <blockquote className={STYLED_QUOTE_TEXT}>
+            &ldquo;{value.quote}&rdquo;
+          </blockquote>
           {value.attribution && (
-            <cite className="block mt-4 text-sm not-italic font-bold">
+            <cite className={STYLED_QUOTE_ATTRIBUTION}>
               &mdash; {value.attribution}
             </cite>
           )}
-        </blockquote>
+        </div>
       );
     },
     keyTakeaways: ({ value }: { value: KeyTakeawaysValue }) => (
-      <div className="bg-brand-teal/10 border-l-4 border-brand-teal p-6 my-8">
-        <h4 className="text-brand-teal uppercase font-bold text-sm mb-4 tracking-widest">
+      <div className={KEY_TAKEAWAYS_CARD}>
+        <h4 className={KEY_TAKEAWAYS_TITLE}>
           Key Takeaways
         </h4>
         <ul className="space-y-2">
           {value.items?.map((item, i) => (
-            <li key={i} className="flex gap-2 text-gray-800">
+            <li key={i} className={KEY_TAKEAWAYS_ITEM}>
               <span className="text-brand-teal">•</span> {item}
             </li>
           ))}
@@ -202,11 +207,81 @@ export function ArticleBody({ content }: ArticleBodyProps) {
     return null;
   }
 
+  const normalized = normalizeLegacyContent(content);
+
   return (
     <div className="prose max-w-none">
-      <PortableText value={content} components={components} />
+      <PortableText value={normalized} components={components} />
     </div>
   );
 }
 
 export default ArticleBody;
+
+/**
+ * Compatibility shim: convert legacy blockquote + list structures into
+ * the newer styledQuote / keyTakeaways blocks so existing articles pick
+ * up the new styling without a data migration.
+ */
+function normalizeLegacyContent(blocks: PortableTextBlock[]): PortableTextBlock[] {
+  const result: PortableTextBlock[] = [];
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i] as Record<string, any>;
+    const text = getBlockText(block).trim();
+    const type = block._type;
+
+    // Legacy styled quote: blockquote style in a regular block
+    if (type === 'block' && block.style === 'blockquote') {
+      result.push({
+        _type: 'styledQuote',
+        _key: block._key || `styledQuote-${i}`,
+        quote: text,
+        attribution: '',
+        style: 'coral',
+      } as any);
+      continue;
+    }
+
+    // Legacy Key Takeaways: heading followed by list items
+    const isKeyTakeawaysHeading =
+      type === 'block' &&
+      ['h2', 'h3', 'h4', 'normal'].includes(block.style || '') &&
+      text.toLowerCase().startsWith('key takeaways');
+
+    if (isKeyTakeawaysHeading) {
+      const items: string[] = [];
+      let j = i + 1;
+      while (j < blocks.length) {
+        const next = blocks[j] as Record<string, any>;
+        if (next._type === 'block' && (next.listItem === 'bullet' || next.listItem === 'number')) {
+          items.push(getBlockText(next));
+          j += 1;
+          continue;
+        }
+        break;
+      }
+
+      if (items.length > 0) {
+        result.push({
+          _type: 'keyTakeaways',
+          _key: block._key || `keyTakeaways-${i}`,
+          items,
+        } as any);
+        i = j - 1; // skip consumed list blocks
+        continue;
+      }
+    }
+
+    result.push(block as PortableTextBlock);
+  }
+
+  return result;
+}
+
+function getBlockText(block: Record<string, any>): string {
+  const children: any[] = block.children || [];
+  return children
+    .map((child) => (typeof child.text === 'string' ? child.text : ''))
+    .join(' ');
+}

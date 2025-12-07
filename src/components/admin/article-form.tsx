@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RichEditor } from './rich-editor';
 import { ImageUpload } from './image-upload';
 import { createArticle, updateArticle, fetchAuthors, fetchCategories } from '@/lib/admin/actions';
+import { convertPortableTextToHTML, convertTiptapToPortableText } from '@/lib/admin/portable-text-converter';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,6 +89,14 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
     }
     loadData();
   }, []);
+
+  // Load existing content when in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && initialData.body) {
+      const html = convertPortableTextToHTML(initialData.body);
+      setEditorContent(html);
+    }
+  }, [mode, initialData.body]);
 
   const handleImageUpload = async (file: File): Promise<{ assetId: string; url: string } | null> => {
     const formData = new FormData();
@@ -373,117 +382,4 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
   );
 }
 
-// Convert Tiptap JSON to Portable Text format
-function convertTiptapToPortableText(json: unknown): unknown[] {
-  if (!json || typeof json !== 'object') return [];
-  
-  const doc = json as { content?: unknown[] };
-  if (!doc.content) return [];
 
-  return doc.content.map((node: unknown, index: number) => {
-    const n = node as { type: string; content?: unknown[]; attrs?: Record<string, unknown> };
-    
-    switch (n.type) {
-      case 'paragraph':
-        return {
-          _type: 'block',
-          _key: `block-${index}`,
-          style: 'normal',
-          markDefs: [],
-          children: extractChildren(n.content),
-        };
-      
-      case 'heading':
-        const level = (n.attrs?.level as number) || 2;
-        return {
-          _type: 'block',
-          _key: `block-${index}`,
-          style: `h${level}`,
-          markDefs: [],
-          children: extractChildren(n.content),
-        };
-      
-      case 'blockquote':
-        return {
-          _type: 'block',
-          _key: `block-${index}`,
-          style: 'blockquote',
-          markDefs: [],
-          children: n.content?.flatMap((p: unknown) => {
-            const para = p as { content?: unknown[] };
-            return extractChildren(para.content);
-          }) || [],
-        };
-      
-      case 'bulletList':
-      case 'orderedList':
-        return (n.content || []).map((item: unknown, itemIndex: number) => {
-          const listItem = item as { content?: unknown[] };
-          return {
-            _type: 'block',
-            _key: `block-${index}-${itemIndex}`,
-            style: 'normal',
-            listItem: n.type === 'bulletList' ? 'bullet' : 'number',
-            level: 1,
-            markDefs: [],
-            children: listItem.content?.flatMap((p: unknown) => {
-              const para = p as { content?: unknown[] };
-              return extractChildren(para.content);
-            }) || [],
-          };
-        });
-      
-      case 'image':
-        return {
-          _type: 'image',
-          _key: `block-${index}`,
-          asset: {
-            _type: 'reference',
-            _ref: n.attrs?.src || '',
-          },
-        };
-      
-      default:
-        return {
-          _type: 'block',
-          _key: `block-${index}`,
-          style: 'normal',
-          markDefs: [],
-          children: [{ _type: 'span', _key: 'span-0', text: '', marks: [] }],
-        };
-    }
-  }).flat();
-}
-
-function extractChildren(content?: unknown[]): unknown[] {
-  if (!content) return [{ _type: 'span', _key: 'span-0', text: '', marks: [] }];
-  
-  return content.map((child: unknown, idx: number) => {
-    const c = child as { type: string; text?: string; marks?: { type: string }[] };
-    
-    if (c.type === 'text') {
-      const marks: string[] = [];
-      if (c.marks) {
-        c.marks.forEach((mark) => {
-          if (mark.type === 'bold') marks.push('strong');
-          if (mark.type === 'italic') marks.push('em');
-          if (mark.type === 'underline') marks.push('underline');
-        });
-      }
-      
-      return {
-        _type: 'span',
-        _key: `span-${idx}`,
-        text: c.text || '',
-        marks,
-      };
-    }
-    
-    return {
-      _type: 'span',
-      _key: `span-${idx}`,
-      text: '',
-      marks: [],
-    };
-  });
-}

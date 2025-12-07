@@ -10,7 +10,8 @@ import {
   Heading2, Heading3, Quote, ImageIcon, Link as LinkIcon,
   Type, MessageSquareQuote, CheckSquare, AlertCircle
 } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { StyledQuoteExtension, KeyTakeawaysExtension, CalloutBoxExtension } from '@/lib/admin/tiptap-extensions';
 
 interface RichEditorProps {
   content: string;
@@ -44,6 +45,9 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
       Placeholder.configure({
         placeholder: 'Start writing your article...',
       }),
+      StyledQuoteExtension,
+      KeyTakeawaysExtension,
+      CalloutBoxExtension,
     ],
     content,
     immediatelyRender: false,
@@ -56,6 +60,13 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
       },
     },
   });
+
+  // Update editor content when content prop changes
+  useEffect(() => {
+    if (editor && content && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, content]);
 
   const addImage = useCallback(async () => {
     const input = document.createElement('input');
@@ -195,12 +206,10 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
         <QuoteModal
           onClose={() => setShowQuoteModal(false)}
           onInsert={(quote, attribution, style) => {
-            editor.chain().focus().insertContent(`
-              <blockquote class="styled-quote styled-quote--${style}">
-                <p>${quote}</p>
-                ${attribution ? `<cite>— ${attribution}</cite>` : ''}
-              </blockquote>
-            `).run();
+            editor.chain().focus().insertContent({
+              type: 'styledQuote',
+              attrs: { quote, attribution, style },
+            }).run();
             setShowQuoteModal(false);
           }}
         />
@@ -210,13 +219,10 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
         <TakeawaysModal
           onClose={() => setShowTakeawaysModal(false)}
           onInsert={(items) => {
-            const listItems = items.map(item => `<li>${item}</li>`).join('');
-            editor.chain().focus().insertContent(`
-              <div class="key-takeaways">
-                <h4>Key Takeaways</h4>
-                <ul>${listItems}</ul>
-              </div>
-            `).run();
+            editor.chain().focus().insertContent({
+              type: 'keyTakeaways',
+              attrs: { items },
+            }).run();
             setShowTakeawaysModal(false);
           }}
         />
@@ -226,12 +232,10 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
         <CalloutModal
           onClose={() => setShowCalloutModal(false)}
           onInsert={(title, content, variant) => {
-            editor.chain().focus().insertContent(`
-              <div class="callout-box callout-box--${variant}">
-                ${title ? `<h4>${title}</h4>` : ''}
-                <p>${content}</p>
-              </div>
-            `).run();
+            editor.chain().focus().insertContent({
+              type: 'calloutBox',
+              attrs: { title, content, variant },
+            }).run();
             setShowCalloutModal(false);
           }}
         />
