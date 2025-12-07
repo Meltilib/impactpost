@@ -224,7 +224,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 />
               </div>
               <figcaption className="text-sm text-gray-500 mt-3 italic text-right border-r-4 border-brand-yellow pr-3">
-                Photo by Freelance Photographer / Impact Post
+                Photo by {story.photoCredit || 'Impact Post'}
               </figcaption>
             </figure>
 

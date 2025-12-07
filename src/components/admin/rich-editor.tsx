@@ -10,19 +10,21 @@ import {
   Heading2, Heading3, Quote, ImageIcon, Link as LinkIcon,
   Type, MessageSquareQuote, CheckSquare, AlertCircle
 } from 'lucide-react';
-import { useState, useCallback, useEffect } from 'react';
-import { StyledQuoteExtension, KeyTakeawaysExtension, CalloutBoxExtension } from '@/lib/admin/tiptap-extensions';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { StyledQuoteExtension, KeyTakeawaysExtension, CalloutBoxExtension, LeadParagraphExtension } from '@/lib/admin/tiptap-extensions';
 
 interface RichEditorProps {
-  content: string;
+  content?: string;
+  initialDoc?: any;
   onChange: (content: string, json: unknown) => void;
   onImageUpload?: (file: File) => Promise<string | null>;
 }
 
-export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps) {
+export function RichEditor({ content, initialDoc, onChange, onImageUpload }: RichEditorProps) {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showTakeawaysModal, setShowTakeawaysModal] = useState(false);
   const [showCalloutModal, setShowCalloutModal] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -48,8 +50,9 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
       StyledQuoteExtension,
       KeyTakeawaysExtension,
       CalloutBoxExtension,
+      LeadParagraphExtension,
     ],
-    content,
+    content: initialDoc || content || { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] },
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML(), editor.getJSON());
@@ -61,12 +64,21 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
     },
   });
 
-  // Update editor content when content prop changes
+  // Update editor content when content prop changes and sync initial value back up
+  const hasSyncedInitial = useRef(false);
   useEffect(() => {
-    if (editor && content && content !== editor.getHTML()) {
+    if (!editor) return;
+
+    const needsSetContent = content && content !== editor.getHTML();
+    if (needsSetContent) {
       editor.commands.setContent(content);
     }
-  }, [editor, content]);
+
+    if (!hasSyncedInitial.current || needsSetContent) {
+      onChange(editor.getHTML(), editor.getJSON());
+      hasSyncedInitial.current = true;
+    }
+  }, [editor, content, onChange]);
 
   const addImage = useCallback(async () => {
     const input = document.createElement('input');
@@ -91,16 +103,12 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
     }
   }, [editor]);
 
-  const insertLeadParagraph = useCallback(() => {
-    if (editor) {
-      const text = window.prompt('Enter lead paragraph text:');
-      if (text) {
-        editor.chain().focus().insertContent({
-          type: 'paragraph',
-          attrs: { class: 'lead-paragraph' },
-          content: [{ type: 'text', text }],
-        }).run();
-      }
+  const insertLeadParagraph = useCallback((text: string) => {
+    if (editor && text) {
+      editor.chain().focus().insertContent({
+        type: 'leadParagraph',
+        content: [{ type: 'text', text }],
+      }).run();
     }
   }, [editor]);
 
@@ -183,7 +191,7 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
 
         {/* Custom blocks */}
         <div className="flex gap-1 px-2">
-          <ToolbarButton onClick={insertLeadParagraph} title="Lead Paragraph (Drop Cap)">
+          <ToolbarButton onClick={() => setShowLeadModal(true)} title="Lead Paragraph (Drop Cap)">
             <Type size={18} />
           </ToolbarButton>
           <ToolbarButton onClick={() => setShowQuoteModal(true)} title="Featured Quote">
@@ -224,6 +232,16 @@ export function RichEditor({ content, onChange, onImageUpload }: RichEditorProps
               attrs: { items },
             }).run();
             setShowTakeawaysModal(false);
+          }}
+        />
+      )}
+
+      {showLeadModal && (
+        <LeadParagraphModal
+          onClose={() => setShowLeadModal(false)}
+          onInsert={(text) => {
+            insertLeadParagraph(text);
+            setShowLeadModal(false);
           }}
         />
       )}
@@ -476,6 +494,47 @@ function CalloutModal({
             type="button"
             onClick={() => onInsert(title, content, variant)}
             disabled={!content}
+            className="px-4 py-2 bg-brand-purple text-white font-bold disabled:opacity-50"
+          >
+            Insert
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function LeadParagraphModal({
+  onClose,
+  onInsert,
+}: {
+  onClose: () => void;
+  onInsert: (text: string) => void;
+}) {
+  const [text, setText] = useState('');
+
+  return (
+    <Modal title="Lead Paragraph" onClose={onClose}>
+      <div className="space-y-4">
+        <p className="text-gray-600">Add an intro paragraph with a drop cap.</p>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="w-full border-2 border-black p-3 min-h-[120px]"
+          placeholder="Type your lead paragraph..."
+        />
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border-2 border-black hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onInsert(text)}
+            disabled={!text.trim()}
             className="px-4 py-2 bg-brand-purple text-white font-bold disabled:opacity-50"
           >
             Insert

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { RichEditor } from './rich-editor';
 import { ImageUpload } from './image-upload';
 import { createArticle, updateArticle, fetchAuthors, fetchCategories } from '@/lib/admin/actions';
-import { convertPortableTextToHTML, convertTiptapToPortableText } from '@/lib/admin/portable-text-converter';
+import { convertPortableTextToTiptapDoc, convertTiptapToPortableText } from '@/lib/admin/portable-text-converter';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 import Link from 'next/link';
 
@@ -37,6 +37,7 @@ interface ArticleFormProps {
     displayOrder?: number;
     tags?: string[];
     publishedAt?: string;
+    photoCredit?: string;
   };
 }
 
@@ -63,12 +64,19 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
   const [authorId, setAuthorId] = useState(initialData.authorId || '');
   const [imageAssetId, setImageAssetId] = useState(initialData.imageAssetId || '');
   const [imageUrl, setImageUrl] = useState(initialData.imageUrl || '');
-  const [editorContent, setEditorContent] = useState('');
-  const [editorJson, setEditorJson] = useState<unknown>(initialData.body || []);
+  const initialDoc = initialData.body ? convertPortableTextToTiptapDoc(initialData.body) : { type: 'doc', content: [] };
+  const [editorJson, setEditorJson] = useState<unknown>(initialDoc);
   const [placement, setPlacement] = useState(initialData.placement || 'grid');
   const [displayOrder, setDisplayOrder] = useState(initialData.displayOrder || 100);
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
   const [tagInput, setTagInput] = useState('');
+  const [photoCredit, setPhotoCredit] = useState(initialData.photoCredit || 'Impact Post');
+  const [publishedAt, setPublishedAt] = useState(() => {
+    const value = initialData.publishedAt || new Date().toISOString();
+    const date = new Date(value);
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  });
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -90,13 +98,7 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
     loadData();
   }, []);
 
-  // Load existing content when in edit mode
-  useEffect(() => {
-    if (mode === 'edit' && initialData.body) {
-      const html = convertPortableTextToHTML(initialData.body);
-      setEditorContent(html);
-    }
-  }, [mode, initialData.body]);
+  // No-op: content now provided as Tiptap doc via initialDoc
 
   const handleImageUpload = async (file: File): Promise<{ assetId: string; url: string } | null> => {
     const formData = new FormData();
@@ -158,7 +160,8 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
         displayOrder,
         tags,
         isDraft,
-        publishedAt: isDraft ? undefined : new Date().toISOString(),
+        publishedAt: isDraft || !publishedAt ? undefined : new Date(publishedAt).toISOString(),
+        photoCredit,
       };
 
       let result;
@@ -295,13 +298,26 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
           />
         </div>
 
+        {/* Photo Credit */}
+        <div>
+          <label className="block font-bold mb-2">Photo Credit</label>
+          <input
+            type="text"
+            value={photoCredit}
+            onChange={(e) => setPhotoCredit(e.target.value)}
+            className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+            placeholder="e.g., Freelance Photographer / Impact Post"
+            maxLength={120}
+          />
+          <p className="text-sm text-gray-500 mt-1">Shown under the hero image. Defaults to “Impact Post”.</p>
+        </div>
+
         {/* Content Editor */}
         <div>
           <label className="block font-bold mb-2">Content</label>
           <RichEditor
-            content={editorContent}
+            initialDoc={initialDoc as any}
             onChange={(html, json) => {
-              setEditorContent(html);
               setEditorJson(json);
             }}
             onImageUpload={handleEditorImageUpload}
@@ -337,6 +353,18 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
               <p className="text-sm text-gray-500 mt-1">Lower number = higher priority</p>
             </div>
           </div>
+        </div>
+
+        {/* Publish date/time */}
+        <div>
+          <label className="block font-bold mb-2">Publish Date &amp; Time</label>
+          <input
+            type="datetime-local"
+            value={publishedAt}
+            onChange={(e) => setPublishedAt(e.target.value)}
+            className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+          />
+          <p className="text-sm text-gray-500 mt-1">Set when the article should be considered published. Leave empty for draft.</p>
         </div>
 
         {/* Tags */}
@@ -381,5 +409,3 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
     </div>
   );
 }
-
-

@@ -9,6 +9,36 @@ import {
 } from '@/lib/article-block-styles';
 
 /**
+ * LeadParagraph Extension
+ * Block node that renders the drop-cap intro paragraph.
+ */
+export const LeadParagraphExtension = Node.create({
+  name: 'leadParagraph',
+  group: 'block',
+  content: 'inline*',
+  selectable: true,
+
+  parseHTML() {
+    return [
+      { tag: 'p[data-type="lead-paragraph"]' },
+      { tag: 'p.lead-paragraph' },
+    ];
+  },
+
+  renderHTML() {
+    return [
+      'p',
+      {
+        'data-type': 'lead-paragraph',
+        class:
+          'lead-paragraph mb-6 leading-relaxed text-xl text-gray-800 first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none',
+      },
+      0,
+    ];
+  },
+});
+
+/**
  * StyledQuote Extension
  * Creates a custom block type for featured quotes with style variants
  */
@@ -40,9 +70,22 @@ export const StyledQuoteExtension = Node.create({
     return [
       {
         tag: 'div[data-type="styled-quote"]',
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          const quote = el.getAttribute('data-quote') || el.textContent || '';
+          const attribution = el.getAttribute('data-attribution') || el.querySelector('cite')?.textContent?.replace(/^—\s*/, '') || '';
+          const style = el.getAttribute('data-style') || 'teal';
+          return { quote, attribution, style };
+        },
       },
       {
         tag: 'div.styled-quote',
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          const quote = el.textContent || '';
+          const attribution = el.querySelector('cite')?.textContent?.replace(/^—\s*/, '') || '';
+          return { quote, attribution, style: 'teal' };
+        },
       },
       {
         tag: 'blockquote.styled-quote',
@@ -108,9 +151,26 @@ export const KeyTakeawaysExtension = Node.create({
     return [
       {
         tag: 'div[data-type="key-takeaways"]',
+        getAttrs: (element) => {
+          const el = element as HTMLElement;
+          const data = el.getAttribute('data-items');
+          if (data) {
+            try {
+              return { items: JSON.parse(data) };
+            } catch (e) {
+              // fall through to text extraction
+            }
+          }
+          const items = Array.from(el.querySelectorAll('li')).map((li) => li.textContent || '').filter(Boolean);
+          return { items };
+        },
       },
       {
         tag: 'div.key-takeaways',
+        getAttrs: (element) => {
+          const items = Array.from((element as HTMLElement).querySelectorAll('li')).map((li) => li.textContent || '').filter(Boolean);
+          return { items };
+        },
       },
     ];
   },

@@ -43,6 +43,7 @@ export default async function AdminDashboard() {
                 <th className="text-left p-4 font-bold">Category</th>
                 <th className="text-left p-4 font-bold">Author</th>
                 <th className="text-left p-4 font-bold">Placement</th>
+                <th className="text-left p-4 font-bold">Order</th>
                 <th className="text-left p-4 font-bold">Date</th>
                 <th className="text-right p-4 font-bold">Actions</th>
               </tr>
@@ -55,6 +56,7 @@ export default async function AdminDashboard() {
                 category?: { title: string };
                 author?: { name: string };
                 placement?: string;
+                displayOrder?: number;
                 publishedAt?: string;
               }) => (
                 <tr key={article._id} className="hover:bg-gray-50">
@@ -82,6 +84,9 @@ export default async function AdminDashboard() {
                     }`}>
                       {article.placement || 'grid'}
                     </span>
+                  </td>
+                  <td className="p-4 text-gray-700 font-mono text-sm">
+                    {article.displayOrder ?? '—'}
                   </td>
                   <td className="p-4 text-gray-600">
                     {article.publishedAt 

@@ -55,6 +55,14 @@ export const article = defineType({
       ],
     }),
     defineField({
+      name: 'photoCredit',
+      title: 'Photo Credit',
+      type: 'string',
+      group: 'content',
+      description: 'e.g., Freelance Photographer / Impact Post',
+      initialValue: 'Impact Post',
+    }),
+    defineField({
       name: 'category',
       title: 'Content Pillar',
       type: 'reference',

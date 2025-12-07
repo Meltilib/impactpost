@@ -6,6 +6,8 @@ import { Ticker } from '@/components/layout/ticker';
 import { SITE_CONFIG } from '@/lib/constants';
 import './globals.css';
 
+export const revalidate = 60;
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',

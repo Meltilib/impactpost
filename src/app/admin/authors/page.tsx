@@ -1,18 +1,10 @@
 import { fetchAuthors, fetchArticlesForAdmin } from '@/lib/admin/actions';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { AuthorsManager } from '@/components/admin/authors-manager';
 
-interface Author {
-  _id: string;
-  name: string;
-  role?: string;
-}
-
-interface Article {
-  _id: string;
-  title: string;
+interface AdminArticle {
   author?: { _id: string; name: string };
-  category?: { _id: string; title: string };
 }
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +16,7 @@ export default async function AuthorsPage() {
   ]);
 
   // Count articles per author
-  const articleCounts = (articles as Article[]).reduce((acc: Record<string, number>, article: Article) => {
+  const articleCounts = (articles as AdminArticle[]).reduce((acc: Record<string, number>, article: AdminArticle) => {
     const authorId = article.author?._id;
     if (authorId) {
       acc[authorId] = (acc[authorId] || 0) + 1;
@@ -44,43 +36,7 @@ export default async function AuthorsPage() {
         </div>
       </div>
 
-      {authors.length === 0 ? (
-        <div className="bg-white border-2 border-black shadow-hard p-12 text-center">
-          <p className="text-gray-600">No authors found</p>
-        </div>
-      ) : (
-        <div className="bg-white border-2 border-black shadow-hard overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-100 border-b-2 border-black">
-              <tr>
-                <th className="text-left p-4 font-bold">Name</th>
-                <th className="text-left p-4 font-bold">Role</th>
-                <th className="text-left p-4 font-bold">Articles</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(authors as Author[]).map((author: Author) => (
-                <tr key={author._id} className="hover:bg-gray-50">
-                  <td className="p-4 font-medium">{author.name}</td>
-                  <td className="p-4 text-gray-600">{author.role || '—'}</td>
-                  <td className="p-4 text-center">{articleCounts[author._id] || 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div className="mt-8 bg-brand-light border-2 border-black shadow-hard p-6 flex gap-4">
-        <AlertCircle size={24} className="text-brand-purple flex-shrink-0 mt-1" />
-        <div>
-          <h3 className="font-bold text-lg mb-2">Full CRUD Coming Soon</h3>
-          <p className="text-gray-700">
-            Author creation, editing, and deletion features will be available in a future update. 
-            For now, you can view all authors and their article counts here.
-          </p>
-        </div>
-      </div>
+      <AuthorsManager authors={authors} articleCounts={articleCounts} />
     </div>
   );
 }

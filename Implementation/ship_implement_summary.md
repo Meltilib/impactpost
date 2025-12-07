@@ -1,9 +1,9 @@
 # IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 2
+- **Total Implementations**: 3
 - **Success Rate**: 100%
-- **Focus Areas**: 🔧 Engineering (60%), 📦 CMS (25%), 🔐 Auth (15%)
+- **Focus Areas**: 🔧 Engineering (55%), 📦 CMS (25%), 🔐 Auth (15%), 🎨 Content Design (5%)
 
 ---
 
@@ -112,6 +112,30 @@
    - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY - Clerk public key
    - CLERK_SECRET_KEY - Clerk secret key
    - SANITY_WRITE_TOKEN - Sanity editor token
+
+---
+
+🚀 #03 2025-12-07 | Content Blocks Stabilization & Admin UX | ✅ 180m | 🔧engineering | 🎨content-design | 📁12f
+   • JSON-first editor load: added PT→Tiptap doc conversion with safe fallback to prevent empty editors and attr loss.
+   • Custom blocks hardened: quote helper kept white card + left accent; Tiptap `getAttrs` fallbacks rebuild attrs so quotes/key-takeaways survive reload/save.
+   • Lead paragraphs fixed: dedicated node + modal, round-tripped as `style: 'lead'`, renderer normalizes legacy shapes; always bold with purple drop cap.
+   • Admin UX: added article “Order” column to the dashboard list.
+   • Compatibility shims: renderer/converter normalize legacy blockquote/list data into structured blocks; static demo updated to shared helpers.
+   • Postmortem recorded: Lesson-learned/01-quote-block-styling-and-roundtrip.md.
+
+   📁 **Files Touched** (selected):
+   - src/lib/article-block-styles.ts
+   - src/components/portable-text.tsx
+   - src/lib/admin/portable-text-converter.ts
+   - src/lib/admin/tiptap-extensions.ts
+   - src/components/admin/rich-editor.tsx
+   - src/app/news/[slug]/page.tsx
+   - src/app/admin/page.tsx
+   - Lesson-learned/01-quote-block-styling-and-roundtrip.md
+
+   🧭 **Notes**:
+   - Key Takeaways disappearing was tied to missing attrs on reload; resolved with `getAttrs` fallbacks and initial editor sync.
+   - Lead paragraphs retain inline formatting and the drop cap after edits; rendered via `style: 'lead'` or legacy type.
 
 ---
 

@@ -27,7 +27,10 @@ export function convertPortableTextToHTML(portableText: unknown): string {
 
     switch (blockType) {
       case 'leadParagraph':
-        return `<p class="lead-paragraph">${escapeHtml(String(b.text || ''))}</p>`;
+        return convertBlockToHTML({
+          ...b,
+          style: 'lead',
+        });
 
       case 'styledQuote':
         const quote = b.quote as string;
@@ -74,6 +77,130 @@ export function convertPortableTextToHTML(portableText: unknown): string {
 }
 
 /**
+ * Convert Portable Text blocks to a Tiptap JSON document to avoid HTML parse loss.
+ */
+export function convertPortableTextToTiptapDoc(portableText: unknown): Record<string, unknown> {
+  const blocks = normalizeLegacyPortableText(Array.isArray(portableText) ? portableText : []);
+
+  const content = blocks.map((block: any) => {
+    switch (block._type) {
+      case 'leadParagraph':
+        return {
+          type: 'leadParagraph',
+          content: textSpansToTiptap(block.children, block.text),
+        };
+      case 'block':
+        if (block.style === 'lead') {
+          return {
+            type: 'leadParagraph',
+            content: textSpansToTiptap(block.children, block.text),
+          };
+        }
+        return portableBlockToTiptap(block);
+      case 'styledQuote':
+        return {
+          type: 'styledQuote',
+          attrs: {
+            quote: block.quote || '',
+            attribution: block.attribution || '',
+            style: block.style || 'teal',
+          },
+        };
+      case 'keyTakeaways':
+        return {
+          type: 'keyTakeaways',
+          attrs: {
+            items: block.items || [],
+          },
+        };
+      case 'calloutBox':
+        return {
+          type: 'calloutBox',
+          attrs: {
+            title: block.title || '',
+            content: block.content || '',
+            variant: block.variant || 'info',
+          },
+        };
+      case 'block':
+      default:
+        return portableBlockToTiptap(block);
+    }
+  }).flat().filter(Boolean);
+
+  // Fallback: never return an empty document—use a blank paragraph so editor renders content area.
+  const safeContent = content.length > 0 ? content : [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }];
+
+  return { type: 'doc', content: safeContent };
+}
+
+function textSpansToTiptap(children?: any[], fallbackText?: string) {
+  const spans = children && children.length > 0 ? children : [{ text: fallbackText || '', marks: [] }];
+  return spans.map((span: any) => ({
+    type: 'text',
+    text: span.text || '',
+    marks: (span.marks || []).map((mark: string) => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+  }));
+}
+
+function portableBlockToTiptap(block: any) {
+  const style = block.style || 'normal';
+  const content = (block.children || []).map((child: any) => ({
+    type: 'text',
+    text: child.text || '',
+    marks: (child.marks || []).map((mark: string) => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+  }));
+
+  if (block.listItem === 'bullet') {
+    return {
+      type: 'bulletList',
+      content: [
+        {
+          type: 'listItem',
+          content: [{ type: 'paragraph', content }],
+        },
+      ],
+    };
+  }
+  if (block.listItem === 'number') {
+    return {
+      type: 'orderedList',
+      content: [
+        {
+          type: 'listItem',
+          content: [{ type: 'paragraph', content }],
+        },
+      ],
+    };
+  }
+
+  if (style === 'blockquote') {
+    return {
+      type: 'blockquote',
+      content: [{ type: 'paragraph', content }],
+    };
+  }
+
+  if (style === 'h2' || style === 'h3' || style === 'h4') {
+    const level = Number(style.replace('h', ''));
+    return {
+      type: 'heading',
+      attrs: { level },
+      content,
+    };
+  }
+
+  if (style === 'lead') {
+    return {
+      type: 'leadParagraph',
+      content,
+    };
+  }
+
+  return { type: 'paragraph', content };
+}
+
+/**
  * Convert a standard Portable Text block to HTML
  */
 function convertBlockToHTML(block: Record<string, unknown>): string {
@@ -92,6 +219,8 @@ function convertBlockToHTML(block: Record<string, unknown>): string {
       return `<h3>${content}</h3>`;
     case 'h4':
       return `<h4>${content}</h4>`;
+    case 'lead':
+      return `<p data-type="lead-paragraph" class="lead-paragraph">${content}</p>`;
     case 'blockquote':
       return `<blockquote><p>${content}</p></blockquote>`;
     case 'normal':
@@ -113,8 +242,17 @@ function convertBlockToHTML(block: Record<string, unknown>): string {
 function normalizeLegacyPortableText(blocks: unknown[]): unknown[] {
   const result: unknown[] = [];
 
+  type BlockWithMeta = {
+    _type?: string;
+    _key?: string;
+    style?: string;
+    listItem?: string;
+    children?: { text?: string }[];
+    marks?: string[];
+  };
+
   for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i] as Record<string, any>;
+    const block = blocks[i] as BlockWithMeta;
     const text = getBlockText(block).trim();
 
     // Legacy styled quote stored as a blockquote-style block
@@ -139,7 +277,7 @@ function normalizeLegacyPortableText(blocks: unknown[]): unknown[] {
       const items: string[] = [];
       let j = i + 1;
       while (j < blocks.length) {
-        const next = blocks[j] as Record<string, any>;
+        const next = blocks[j] as BlockWithMeta;
         if (next._type === 'block' && (next.listItem === 'bullet' || next.listItem === 'number')) {
           items.push(getBlockText(next));
           j += 1;
@@ -165,17 +303,28 @@ function normalizeLegacyPortableText(blocks: unknown[]): unknown[] {
   return result;
 }
 
-function getBlockText(block: Record<string, any>): string {
-  const children: any[] = block?.children || [];
+function getBlockText(block: { children?: { text?: string }[] }): string {
+  const children = block?.children || [];
   return children.map((child) => (typeof child.text === 'string' ? child.text : '')).join(' ');
+}
+
+function extractPlainText(content?: unknown[]): string {
+  if (!content) return '';
+  return content
+    .map((child: any) => {
+      if (child.type === 'text') return child.text || '';
+      if (child.content) return extractPlainText(child.content);
+      return '';
+    })
+    .join(' ');
 }
 
 /**
  * Convert a Portable Text span to HTML
  */
-function convertSpanToHTML(span: Record<string, unknown>): string {
-  const text = span.text as string || '';
-  const marks = span.marks as string[] || [];
+function convertSpanToHTML(span: { text?: string; marks?: string[] }): string {
+  const text = span.text || '';
+  const marks = span.marks || [];
 
   let html = escapeHtml(text);
 
@@ -214,11 +363,21 @@ export function convertTiptapToPortableText(json: unknown): unknown[] {
     const n = node as { type: string; content?: unknown[]; attrs?: Record<string, unknown> };
     
     switch (n.type) {
-      case 'paragraph':
+      case 'paragraph': {
         return {
           _type: 'block',
           _key: `block-${index}`,
           style: 'normal',
+          markDefs: [],
+          children: extractChildren(n.content),
+        };
+      }
+
+      case 'leadParagraph':
+        return {
+          _type: 'block',
+          _key: `lead-${index}`,
+          style: 'lead',
           markDefs: [],
           children: extractChildren(n.content),
         };

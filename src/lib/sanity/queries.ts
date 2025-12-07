@@ -18,6 +18,7 @@ export const articlesQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -58,6 +59,7 @@ export const featuredArticleQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -97,6 +99,7 @@ export const sidebarArticlesQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -137,6 +140,7 @@ export const recentArticlesQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -177,6 +181,7 @@ export const articleBySlugQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -226,6 +231,7 @@ export const articlesByCategoryQuery = groq`
       },
       alt
     },
+    photoCredit,
     author->{
       _id,
       name,
@@ -339,4 +345,13 @@ export const articleSlugsQuery = groq`
 // Fetch all category slugs (for generateStaticParams)
 export const categorySlugsQuery = groq`
   *[_type == "category" && defined(slug.current)][].slug.current
+`;
+
+// Fetch site settings (ticker)
+export const siteSettingsQuery = groq`
+  *[_type == "siteSettings"][0]{
+    _id,
+    isTickerActive,
+    tickerItems
+  }
 `;

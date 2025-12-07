@@ -16,6 +16,7 @@ export interface ArticleFormData {
   tags: string[];
   publishedAt?: string;
   isDraft?: boolean;
+  photoCredit?: string;
 }
 
 export async function createArticle(data: ArticleFormData) {
@@ -31,6 +32,7 @@ export async function createArticle(data: ArticleFormData) {
         _type: 'image',
         asset: { _type: 'reference', _ref: data.imageAssetId },
       } : undefined,
+      photoCredit: data.photoCredit || 'Impact Post',
       body: data.body,
       placement: data.placement,
       displayOrder: data.displayOrder,
@@ -44,6 +46,7 @@ export async function createArticle(data: ArticleFormData) {
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
+    revalidatePath('/section');
     
     return { success: true, id: result._id };
   } catch (error) {
@@ -67,6 +70,7 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
         asset: { _type: 'reference', _ref: data.imageAssetId },
       };
     }
+    if (data.photoCredit !== undefined) updates.photoCredit = data.photoCredit || 'Impact Post';
     if (data.body) updates.body = data.body;
     if (data.placement) {
       updates.placement = data.placement;
@@ -81,6 +85,7 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
+    revalidatePath('/section');
     
     return { success: true };
   } catch (error) {
@@ -96,6 +101,7 @@ export async function deleteArticle(id: string) {
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
+    revalidatePath('/section');
     
     return { success: true };
   } catch (error) {
@@ -110,7 +116,15 @@ export async function fetchAuthors() {
       *[_type == "author"] | order(name asc) {
         _id,
         name,
-        role
+        role,
+        bio,
+        "slug": slug.current,
+        image {
+          asset->{
+            _id,
+            url
+          }
+        }
       }
     `);
     return authors;
@@ -126,7 +140,10 @@ export async function fetchCategories() {
       *[_type == "category"] | order(title asc) {
         _id,
         title,
-        "slug": slug.current
+        "slug": slug.current,
+        description,
+        color,
+        textColor
       }
     `);
     return categories;
@@ -176,6 +193,7 @@ export async function fetchArticleById(id: string) {
         placement,
         displayOrder,
         tags,
+        photoCredit,
         mainImage {
           asset->{
             _id,
@@ -196,5 +214,314 @@ export async function fetchArticleById(id: string) {
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
+  }
+}
+
+// ------- Authors -------
+export interface AuthorPayload {
+  name: string;
+  role?: string;
+  slug: string;
+  bio?: string;
+  imageAssetId?: string;
+}
+
+export async function fetchAuthorById(id: string) {
+  try {
+    const author = await writeClient.fetch(`
+      *[_type == "author" && _id == $id][0]{
+        _id,
+        name,
+        role,
+        bio,
+        "slug": slug.current,
+        image {
+          asset->{
+            _id,
+            url
+          }
+        }
+      }
+    `, { id });
+    return author;
+  } catch (error) {
+    console.error('Error fetching author:', error);
+    return null;
+  }
+}
+
+export async function createAuthor(payload: AuthorPayload) {
+  try {
+    const existing = await writeClient.fetch(
+      'count(*[_type == "author" && slug.current == $slug])',
+      { slug: payload.slug }
+    );
+    if (existing > 0) {
+      return { success: false, error: 'Slug already in use' };
+    }
+
+    const doc: Record<string, unknown> = {
+      _type: 'author',
+      name: payload.name,
+      slug: { _type: 'slug', current: payload.slug },
+      role: payload.role,
+      bio: payload.bio,
+    };
+
+    if (payload.imageAssetId) {
+      doc.image = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: payload.imageAssetId },
+      };
+    }
+
+    await writeClient.create(doc);
+
+    revalidatePath('/admin/authors');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating author:', error);
+    return { success: false, error: 'Failed to create author' };
+  }
+}
+
+export async function updateAuthor(id: string, payload: Partial<AuthorPayload>) {
+  try {
+    if (payload.slug) {
+      const existing = await writeClient.fetch(
+        'count(*[_type == "author" && slug.current == $slug && _id != $id])',
+        { slug: payload.slug, id }
+      );
+      if (existing > 0) {
+        return { success: false, error: 'Slug already in use' };
+      }
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (payload.name !== undefined) updates.name = payload.name;
+    if (payload.role !== undefined) updates.role = payload.role;
+    if (payload.bio !== undefined) updates.bio = payload.bio;
+    if (payload.slug !== undefined) updates.slug = { _type: 'slug', current: payload.slug };
+    if (payload.imageAssetId !== undefined) {
+      updates.image = payload.imageAssetId
+        ? {
+            _type: 'image',
+            asset: { _type: 'reference', _ref: payload.imageAssetId },
+          }
+        : null;
+    }
+
+    await writeClient.patch(id).set(updates).commit();
+
+    revalidatePath('/admin/authors');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating author:', error);
+    return { success: false, error: 'Failed to update author' };
+  }
+}
+
+export async function deleteAuthor(id: string) {
+  try {
+    const references = await writeClient.fetch(
+      'count(*[_type == "article" && references($id)])',
+      { id }
+    );
+    if (references > 0) {
+      return { success: false, error: 'Cannot delete: author is used by articles' };
+    }
+
+    await writeClient.delete(id);
+
+    revalidatePath('/admin/authors');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting author:', error);
+    return { success: false, error: 'Failed to delete author' };
+  }
+}
+
+// ------- Categories -------
+export interface CategoryPayload {
+  title: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  textColor?: string;
+}
+
+export async function fetchCategoryById(id: string) {
+  try {
+    const category = await writeClient.fetch(`
+      *[_type == "category" && _id == $id][0]{
+        _id,
+        title,
+        description,
+        color,
+        textColor,
+        "slug": slug.current
+      }
+    `, { id });
+    return category;
+  } catch (error) {
+    console.error('Error fetching category:', error);
+    return null;
+  }
+}
+
+export async function createCategory(payload: CategoryPayload) {
+  try {
+    const existing = await writeClient.fetch(
+      'count(*[_type == "category" && slug.current == $slug])',
+      { slug: payload.slug }
+    );
+    if (existing > 0) {
+      return { success: false, error: 'Slug already in use' };
+    }
+
+    await writeClient.create({
+      _type: 'category',
+      title: payload.title,
+      slug: { _type: 'slug', current: payload.slug },
+      description: payload.description,
+      color: payload.color,
+      textColor: payload.textColor,
+    });
+
+    revalidatePath('/admin/categories');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+    revalidatePath('/section');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating category:', error);
+    return { success: false, error: 'Failed to create category' };
+  }
+}
+
+export async function updateCategory(id: string, payload: Partial<CategoryPayload>) {
+  try {
+    if (payload.slug) {
+      const existing = await writeClient.fetch(
+        'count(*[_type == "category" && slug.current == $slug && _id != $id])',
+        { slug: payload.slug, id }
+      );
+      if (existing > 0) {
+        return { success: false, error: 'Slug already in use' };
+      }
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (payload.title !== undefined) updates.title = payload.title;
+    if (payload.slug !== undefined) updates.slug = { _type: 'slug', current: payload.slug };
+    if (payload.description !== undefined) updates.description = payload.description;
+    if (payload.color !== undefined) updates.color = payload.color;
+    if (payload.textColor !== undefined) updates.textColor = payload.textColor;
+
+    await writeClient.patch(id).set(updates).commit();
+
+    revalidatePath('/admin/categories');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+    revalidatePath('/section');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating category:', error);
+    return { success: false, error: 'Failed to update category' };
+  }
+}
+
+export async function deleteCategory(id: string) {
+  try {
+    const references = await writeClient.fetch(
+      'count(*[_type == "article" && references($id)])',
+      { id }
+    );
+    if (references > 0) {
+      return { success: false, error: 'Cannot delete: category is used by articles' };
+    }
+
+    await writeClient.delete(id);
+
+    revalidatePath('/admin/categories');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+    revalidatePath('/section');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    return { success: false, error: 'Failed to delete category' };
+  }
+}
+
+// ------- Ticker -------
+export interface TickerPayload {
+  items: string[];
+  isActive: boolean;
+}
+
+export async function fetchTickerSettings() {
+  try {
+    const settings = await writeClient.fetch(`
+      *[_type == "siteSettings"][0]{
+        _id,
+        isTickerActive,
+        tickerItems
+      }
+    `);
+    return settings;
+  } catch (error) {
+    console.error('Error fetching site settings:', error);
+    return null;
+  }
+}
+
+export async function updateTickerSettings(payload: TickerPayload) {
+  try {
+    await writeClient.createOrReplace({
+      _id: 'siteSettings',
+      _type: 'siteSettings',
+      isTickerActive: payload.isActive,
+      tickerItems: payload.items.map((text) => ({ text })),
+    });
+
+    revalidatePath('/');
+    revalidatePath('/news');
+    revalidatePath('/admin');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating ticker:', error);
+    return { success: false, error: 'Failed to update ticker' };
   }
 }

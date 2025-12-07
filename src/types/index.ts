@@ -15,6 +15,7 @@ export interface Story {
   category: Category;
   imageUrl: string;
   author: Author;
+  photoCredit?: string;
   date: string;
   readTime: string;
   isFeatured?: boolean;

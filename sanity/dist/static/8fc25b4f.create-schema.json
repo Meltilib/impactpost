@@ -1,0 +1,885 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 100
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "description": "Optional subtitle that appears below the headline",
+        "name": "subtitle",
+        "type": "string",
+        "title": "Subtitle / Deck"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "to": [
+          {
+            "type": "author"
+          }
+        ],
+        "name": "author",
+        "type": "reference"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "fields": [
+          {
+            "description": "Important for accessibility and SEO",
+            "name": "alt",
+            "type": "string",
+            "title": "Alt Text"
+          }
+        ],
+        "name": "mainImage",
+        "type": "image",
+        "title": "Hero Image"
+      },
+      {
+        "initialValue": "Impact Post",
+        "description": "e.g., Freelance Photographer / Impact Post",
+        "name": "photoCredit",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "to": [
+          {
+            "type": "category"
+          }
+        ],
+        "name": "category",
+        "type": "reference",
+        "title": "Content Pillar"
+      },
+      {
+        "options": {
+          "layout": "tags"
+        },
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "tags",
+        "type": "array"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 300
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "description": "Brief summary for cards and SEO (auto-generated if empty)",
+        "name": "excerpt",
+        "type": "text"
+      },
+      {
+        "name": "body",
+        "type": "blockContent",
+        "title": "Content"
+      },
+      {
+        "name": "publishedAt",
+        "type": "datetime",
+        "title": "Publish Date"
+      },
+      {
+        "initialValue": false,
+        "description": "Display as the main featured story on homepage",
+        "name": "isFeatured",
+        "type": "boolean",
+        "title": "Featured Article"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Featured Hero",
+              "value": "featured-hero"
+            },
+            {
+              "title": "Sidebar (Community Pulse)",
+              "value": "sidebar"
+            },
+            {
+              "title": "Grid (Latest Stories)",
+              "value": "grid"
+            },
+            {
+              "title": "Hidden",
+              "value": "hidden"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "grid",
+        "description": "Where this article appears on the homepage",
+        "name": "placement",
+        "type": "string",
+        "title": "Homepage Placement"
+      },
+      {
+        "initialValue": 100,
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "description": "Priority within section (1 = highest)",
+        "name": "displayOrder",
+        "type": "number"
+      },
+      {
+        "description": "Optional: Pin article to top of section until this date",
+        "name": "pinnedUntil",
+        "type": "datetime"
+      },
+      {
+        "options": {
+          "collapsible": true,
+          "collapsed": true
+        },
+        "fields": [
+          {
+            "description": "Defaults to article title if empty",
+            "name": "metaTitle",
+            "type": "string"
+          },
+          {
+            "rows": 2,
+            "description": "Defaults to excerpt if empty",
+            "name": "metaDescription",
+            "type": "text"
+          },
+          {
+            "description": "Defaults to hero image if empty",
+            "name": "socialImage",
+            "type": "image",
+            "title": "Social Share Image"
+          }
+        ],
+        "name": "seo",
+        "type": "object",
+        "title": "SEO Settings"
+      }
+    ],
+    "name": "article",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "name",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "description": "e.g., Senior Political Correspondent, Youth Reporter",
+        "name": "role",
+        "type": "string",
+        "title": "Role / Title"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "image",
+        "type": "image",
+        "title": "Photo"
+      },
+      {
+        "rows": 4,
+        "name": "bio",
+        "type": "text"
+      }
+    ],
+    "name": "author",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "title",
+        "type": "string",
+        "title": "Name"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "rows": 3,
+        "name": "description",
+        "type": "text"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Purple",
+              "value": "bg-brand-purple"
+            },
+            {
+              "title": "Coral",
+              "value": "bg-brand-coral"
+            },
+            {
+              "title": "Teal",
+              "value": "bg-brand-teal"
+            },
+            {
+              "title": "Yellow",
+              "value": "bg-brand-yellow"
+            },
+            {
+              "title": "Blue",
+              "value": "bg-brand-blue"
+            },
+            {
+              "title": "Dark",
+              "value": "bg-brand-dark"
+            }
+          ]
+        },
+        "description": "Tailwind background class (e.g., bg-brand-purple)",
+        "name": "color",
+        "type": "string",
+        "title": "Theme Color"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "White",
+              "value": "text-white"
+            },
+            {
+              "title": "Black",
+              "value": "text-black"
+            }
+          ]
+        },
+        "initialValue": "text-white",
+        "description": "Tailwind text class",
+        "name": "textColor",
+        "type": "string"
+      }
+    ],
+    "name": "category",
+    "type": "document",
+    "title": "Content Pillar"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "title",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "eventDate",
+        "type": "datetime",
+        "title": "Date & Time"
+      },
+      {
+        "description": "Venue name and address, or \"Virtual\" for online events",
+        "name": "location",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Culture",
+              "value": "Culture"
+            },
+            {
+              "title": "Networking",
+              "value": "Networking"
+            },
+            {
+              "title": "Community",
+              "value": "Community"
+            },
+            {
+              "title": "Literature",
+              "value": "Literature"
+            },
+            {
+              "title": "Workshop",
+              "value": "Workshop"
+            },
+            {
+              "title": "Conference",
+              "value": "Conference"
+            }
+          ]
+        },
+        "name": "type",
+        "type": "string",
+        "title": "Event Type"
+      },
+      {
+        "rows": 4,
+        "name": "description",
+        "type": "text"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "description": "External link for event registration",
+        "name": "registrationUrl",
+        "type": "url",
+        "title": "Registration Link"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "image",
+        "type": "image",
+        "title": "Event Image"
+      }
+    ],
+    "name": "event",
+    "type": "document"
+  },
+  {
+    "of": [
+      {
+        "marks": {
+          "annotations": [
+            {
+              "fields": [
+                {
+                  "validation": [
+                    {
+                      "rules": [
+                        {
+                          "flag": "uri",
+                          "constraint": {
+                            "options": {
+                              "scheme": [
+                                "/^http$/",
+                                "/^https$/",
+                                "/^mailto$/",
+                                "/^tel$/"
+                              ],
+                              "allowRelative": false,
+                              "relativeOnly": false,
+                              "allowCredentials": false
+                            }
+                          }
+                        }
+                      ],
+                      "level": "error"
+                    }
+                  ],
+                  "name": "href",
+                  "type": "url",
+                  "title": "URL"
+                },
+                {
+                  "initialValue": false,
+                  "name": "openInNewTab",
+                  "type": "boolean",
+                  "title": "Open in new tab"
+                }
+              ],
+              "name": "link",
+              "type": "object"
+            }
+          ],
+          "decorators": [
+            {
+              "value": "strong",
+              "title": "Bold"
+            },
+            {
+              "value": "em",
+              "title": "Italic"
+            },
+            {
+              "value": "underline",
+              "title": "Underline"
+            }
+          ]
+        },
+        "lists": [
+          {
+            "value": "bullet",
+            "title": "Bullet"
+          },
+          {
+            "value": "number",
+            "title": "Numbered"
+          }
+        ],
+        "styles": [
+          {
+            "value": "normal",
+            "title": "Normal"
+          },
+          {
+            "value": "h2",
+            "title": "H2"
+          },
+          {
+            "value": "h3",
+            "title": "H3"
+          },
+          {
+            "value": "h4",
+            "title": "H4"
+          },
+          {
+            "value": "blockquote",
+            "title": "Quote"
+          }
+        ],
+        "of": [],
+        "type": "block"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "fields": [
+          {
+            "description": "Important for accessibility and SEO",
+            "name": "alt",
+            "type": "string",
+            "title": "Alt Text"
+          },
+          {
+            "name": "caption",
+            "type": "string"
+          }
+        ],
+        "type": "image"
+      },
+      {
+        "fields": [
+          {
+            "rows": 4,
+            "validation": [
+              {
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ],
+                "level": "error"
+              }
+            ],
+            "name": "text",
+            "type": "text",
+            "title": "Paragraph Text"
+          }
+        ],
+        "type": "object",
+        "name": "leadParagraph",
+        "title": "Lead Paragraph (Drop Cap)"
+      },
+      {
+        "fields": [
+          {
+            "rows": 3,
+            "validation": [
+              {
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ],
+                "level": "error"
+              }
+            ],
+            "name": "quote",
+            "type": "text",
+            "title": "Quote Text"
+          },
+          {
+            "name": "attribution",
+            "type": "string",
+            "title": "Attribution (optional)"
+          },
+          {
+            "options": {
+              "list": [
+                {
+                  "title": "Teal",
+                  "value": "teal"
+                },
+                {
+                  "title": "Coral",
+                  "value": "coral"
+                },
+                {
+                  "title": "Purple",
+                  "value": "purple"
+                }
+              ]
+            },
+            "initialValue": "teal",
+            "name": "style",
+            "type": "string"
+          }
+        ],
+        "type": "object",
+        "name": "styledQuote",
+        "title": "Featured Quote"
+      },
+      {
+        "fields": [
+          {
+            "validation": [
+              {
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  },
+                  {
+                    "flag": "min",
+                    "constraint": 1
+                  }
+                ],
+                "level": "error"
+              }
+            ],
+            "of": [
+              {
+                "type": "string"
+              }
+            ],
+            "name": "items",
+            "type": "array",
+            "title": "Takeaway Items"
+          }
+        ],
+        "type": "object",
+        "name": "keyTakeaways",
+        "title": "Key Takeaways Box"
+      },
+      {
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "title": "Title (optional)"
+          },
+          {
+            "rows": 4,
+            "validation": [
+              {
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ],
+                "level": "error"
+              }
+            ],
+            "name": "content",
+            "type": "text"
+          },
+          {
+            "options": {
+              "list": [
+                {
+                  "title": "Info (Blue)",
+                  "value": "info"
+                },
+                {
+                  "title": "Warning (Yellow)",
+                  "value": "warning"
+                },
+                {
+                  "title": "Success (Green)",
+                  "value": "success"
+                },
+                {
+                  "title": "Note (Gray)",
+                  "value": "note"
+                }
+              ]
+            },
+            "initialValue": "info",
+            "name": "variant",
+            "type": "string"
+          }
+        ],
+        "type": "object",
+        "name": "calloutBox"
+      }
+    ],
+    "name": "blockContent",
+    "type": "array",
+    "title": "Body Content"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": true,
+        "name": "isTickerActive",
+        "type": "boolean",
+        "title": "Enable Ticker"
+      },
+      {
+        "initialValue": [
+          {
+            "text": "BREAKING: New Cultural Centre Approved in Etobicoke"
+          },
+          {
+            "text": "Youth Scholarship Applications Open until Nov 30"
+          },
+          {
+            "text": "Community Business Awards Nominations Now Open"
+          }
+        ],
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 12
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "description": "Items scroll from left to right; first item appears immediately.",
+        "of": [
+          {
+            "fields": [
+              {
+                "validation": [
+                  {
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      },
+                      {
+                        "flag": "max",
+                        "constraint": 160
+                      }
+                    ],
+                    "level": "error"
+                  }
+                ],
+                "name": "text",
+                "type": "string"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "name": "tickerItems",
+        "type": "array"
+      }
+    ],
+    "name": "siteSettings",
+    "type": "document"
+  }
+]

@@ -33,6 +33,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
         displayOrder: article.displayOrder,
         tags: article.tags,
         publishedAt: article.publishedAt,
+        photoCredit: article.photoCredit,
       }}
     />
   );

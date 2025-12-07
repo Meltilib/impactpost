@@ -17,6 +17,11 @@ export default defineConfig({
           .title('Content')
           .items([
             S.listItem()
+              .title('Site Settings')
+              .schemaType('siteSettings')
+              .child(S.documentTypeList('siteSettings').title('Site Settings')),
+            S.divider(),
+            S.listItem()
               .title('Articles')
               .schemaType('article')
               .child(S.documentTypeList('article').title('All Articles')),

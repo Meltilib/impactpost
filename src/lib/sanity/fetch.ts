@@ -11,6 +11,7 @@ import {
   categoryBySlugQuery,
   articleSlugsQuery,
   categorySlugsQuery,
+  siteSettingsQuery,
 } from './queries';
 import {
   mapSanityArticle,
@@ -29,6 +30,12 @@ import {
   getStoriesByCategory,
 } from '@/lib/data';
 import type { Story, Event } from '@/types';
+
+const DEFAULT_TICKER_ITEMS = [
+  'BREAKING: New Cultural Centre Approved in Etobicoke',
+  'Youth Scholarship Applications Open until Nov 30',
+  'Community Business Awards Nominations Now Open',
+];
 
 // Get the appropriate client based on draft mode
 async function getClientForFetch() {
@@ -248,4 +255,31 @@ export async function fetchCategorySlugs(): Promise<string[]> {
   
   // Fallback to static categories
   return ['community-voices', 'youth', 'business', 'multimedia'];
+}
+
+// Fetch ticker items from site settings
+export async function fetchTickerItems(): Promise<{ items: string[]; isActive: boolean }> {
+  const sanityClient = await getClientForFetch();
+
+  if (sanityClient) {
+    try {
+      const settings = await sanityClient.fetch(siteSettingsQuery);
+      if (settings) {
+        const items = Array.isArray(settings.tickerItems)
+          ? settings.tickerItems
+              .map((item: { text?: string }) => item?.text)
+              .filter(Boolean)
+          : [];
+
+        return {
+          items: items.length ? items : DEFAULT_TICKER_ITEMS,
+          isActive: settings.isTickerActive ?? true,
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching ticker items from Sanity:', error);
+    }
+  }
+
+  return { items: DEFAULT_TICKER_ITEMS, isActive: true };
 }

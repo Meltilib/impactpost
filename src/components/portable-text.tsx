@@ -31,7 +31,8 @@ interface LinkValue {
 
 interface LeadParagraphValue {
   _type: 'leadParagraph';
-  text: string;
+  text?: string;
+  children?: PortableTextBlock['children'];
 }
 
 interface StyledQuoteValue {
@@ -55,6 +56,11 @@ interface CalloutBoxValue {
 
 const components: PortableTextComponents = {
   block: {
+    lead: ({ children }) => (
+      <p className="lead-paragraph mb-6 leading-relaxed text-xl text-gray-800 font-bold first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
+        {children}
+      </p>
+    ),
     h2: ({ children }) => (
       <h2 className="font-display text-3xl mt-12 mb-6 text-brand-dark">
         {children}
@@ -77,6 +83,12 @@ const components: PortableTextComponents = {
     ),
     normal: ({ children }) => (
       <p className="mb-6 leading-relaxed text-lg text-gray-800">
+        {children}
+      </p>
+    ),
+    // Render blocks marked as lead style (e.g., from conversion)
+    leadParagraph: ({ children }) => (
+      <p className="lead-paragraph mb-6 leading-relaxed text-xl text-gray-800 font-bold first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
         {children}
       </p>
     ),
@@ -118,9 +130,12 @@ const components: PortableTextComponents = {
         </figure>
       );
     },
+    // Legacy leadParagraph objects (new content uses block.style = 'lead')
     leadParagraph: ({ value }: { value: LeadParagraphValue }) => (
-      <p className="mb-6 leading-relaxed text-xl text-gray-800 first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
-        {value.text}
+      <p className="lead-paragraph mb-6 leading-relaxed text-xl text-gray-800 font-bold first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
+        {value.children
+          ? (value.children as any[]).map((child) => ('text' in child ? (child as any).text : ''))
+          : value.text}
       </p>
     ),
     styledQuote: ({ value }: { value: StyledQuoteValue }) => {
@@ -207,7 +222,7 @@ export function ArticleBody({ content }: ArticleBodyProps) {
     return null;
   }
 
-  const normalized = normalizeLegacyContent(content);
+  const normalized = normalizeLeadBlocks(normalizeLegacyContent(content));
 
   return (
     <div className="prose max-w-none">
@@ -218,6 +233,32 @@ export function ArticleBody({ content }: ArticleBodyProps) {
 
 export default ArticleBody;
 
+function normalizeLeadBlocks(blocks: PortableTextBlock[]): PortableTextBlock[] {
+  return blocks.map((block, index) => {
+    const b = block as any;
+
+    // Convert legacy leadParagraph object to block style lead
+    if (b._type === 'leadParagraph') {
+      const text = (b.text as string) || '';
+      const children = b.children || [{ _type: 'span', _key: 'span-0', text, marks: [] }];
+      return {
+        _type: 'block',
+        _key: b._key || `lead-${index}`,
+        style: 'lead',
+        markDefs: [],
+        children,
+      } as any;
+    }
+
+    // If style already marked as lead, leave it
+    if (b._type === 'block' && b.style === 'lead') {
+      return block;
+    }
+
+    return block;
+  });
+}
+
 /**
  * Compatibility shim: convert legacy blockquote + list structures into
  * the newer styledQuote / keyTakeaways blocks so existing articles pick
@@ -226,20 +267,27 @@ export default ArticleBody;
 function normalizeLegacyContent(blocks: PortableTextBlock[]): PortableTextBlock[] {
   const result: PortableTextBlock[] = [];
 
+  type BlockWithMeta = PortableTextBlock & {
+    style?: string;
+    listItem?: string;
+    children?: { text?: string }[];
+  };
+
   for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i] as Record<string, any>;
+    const block = blocks[i] as BlockWithMeta;
     const text = getBlockText(block).trim();
     const type = block._type;
 
     // Legacy styled quote: blockquote style in a regular block
     if (type === 'block' && block.style === 'blockquote') {
-      result.push({
+      const styledQuote: PortableTextBlock = {
         _type: 'styledQuote',
         _key: block._key || `styledQuote-${i}`,
         quote: text,
         attribution: '',
         style: 'coral',
-      } as any);
+      } as unknown as PortableTextBlock;
+      result.push(styledQuote);
       continue;
     }
 
@@ -253,7 +301,7 @@ function normalizeLegacyContent(blocks: PortableTextBlock[]): PortableTextBlock[
       const items: string[] = [];
       let j = i + 1;
       while (j < blocks.length) {
-        const next = blocks[j] as Record<string, any>;
+        const next = blocks[j] as BlockWithMeta;
         if (next._type === 'block' && (next.listItem === 'bullet' || next.listItem === 'number')) {
           items.push(getBlockText(next));
           j += 1;
@@ -263,24 +311,25 @@ function normalizeLegacyContent(blocks: PortableTextBlock[]): PortableTextBlock[
       }
 
       if (items.length > 0) {
-        result.push({
+        const keyTakeaways: PortableTextBlock = {
           _type: 'keyTakeaways',
           _key: block._key || `keyTakeaways-${i}`,
           items,
-        } as any);
+        } as unknown as PortableTextBlock;
+        result.push(keyTakeaways);
         i = j - 1; // skip consumed list blocks
         continue;
       }
     }
 
-    result.push(block as PortableTextBlock);
+    result.push(block);
   }
 
   return result;
 }
 
-function getBlockText(block: Record<string, any>): string {
-  const children: any[] = block.children || [];
+function getBlockText(block: PortableTextBlock & { children?: { text?: string }[] }): string {
+  const children = block.children || [];
   return children
     .map((child) => (typeof child.text === 'string' ? child.text : ''))
     .join(' ');

@@ -1,17 +1,9 @@
 import { fetchCategories, fetchArticlesForAdmin } from '@/lib/admin/actions';
 import Link from 'next/link';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { CategoriesManager } from '@/components/admin/categories-manager';
 
-interface Category {
-  _id: string;
-  title: string;
-  slug: string;
-}
-
-interface Article {
-  _id: string;
-  title: string;
-  author?: { _id: string; name: string };
+interface AdminArticle {
   category?: { _id: string; title: string };
 }
 
@@ -24,7 +16,7 @@ export default async function CategoriesPage() {
   ]);
 
   // Count articles per category
-  const articleCounts = (articles as Article[]).reduce((acc: Record<string, number>, article: Article) => {
+  const articleCounts = (articles as AdminArticle[]).reduce((acc: Record<string, number>, article: AdminArticle) => {
     const categoryId = article.category?._id;
     if (categoryId) {
       acc[categoryId] = (acc[categoryId] || 0) + 1;
@@ -44,43 +36,7 @@ export default async function CategoriesPage() {
         </div>
       </div>
 
-      {categories.length === 0 ? (
-        <div className="bg-white border-2 border-black shadow-hard p-12 text-center">
-          <p className="text-gray-600">No categories found</p>
-        </div>
-      ) : (
-        <div className="bg-white border-2 border-black shadow-hard overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-100 border-b-2 border-black">
-              <tr>
-                <th className="text-left p-4 font-bold">Title</th>
-                <th className="text-left p-4 font-bold">Slug</th>
-                <th className="text-left p-4 font-bold">Articles</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {(categories as Category[]).map((category: Category) => (
-                <tr key={category._id} className="hover:bg-gray-50">
-                  <td className="p-4 font-medium">{category.title}</td>
-                  <td className="p-4 text-gray-600 font-mono text-sm">{category.slug}</td>
-                  <td className="p-4 text-center">{articleCounts[category._id] || 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div className="mt-8 bg-brand-light border-2 border-black shadow-hard p-6 flex gap-4">
-        <AlertCircle size={24} className="text-brand-purple flex-shrink-0 mt-1" />
-        <div>
-          <h3 className="font-bold text-lg mb-2">Full CRUD Coming Soon</h3>
-          <p className="text-gray-700">
-            Category creation, editing, and deletion features will be available in a future update. 
-            For now, you can view all categories and their article counts here.
-          </p>
-        </div>
-      </div>
+      <CategoriesManager categories={categories} articleCounts={articleCounts} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ export interface SanityArticle {
   publishedAt?: string;
   isFeatured?: boolean;
   tags?: string[];
+  photoCredit?: string;
   mainImage?: {
     asset?: {
       _id: string;
@@ -128,6 +129,7 @@ export function mapSanityArticle(doc: SanityArticle): Story {
     imageUrl: doc.mainImage?.asset?.url 
       ? urlFor(doc.mainImage).width(800).height(600).url()
       : '/images/placeholder.jpg',
+    photoCredit: doc.photoCredit || 'Impact Post',
     author: {
       id: doc.author?._id || 'unknown',
       name: doc.author?.name || 'IMPACT POST',
