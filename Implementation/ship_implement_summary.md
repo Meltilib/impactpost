@@ -1,9 +1,9 @@
 # IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 3
+- **Total Implementations**: 4
 - **Success Rate**: 100%
-- **Focus Areas**: 🔧 Engineering (55%), 📦 CMS (25%), 🔐 Auth (15%), 🎨 Content Design (5%)
+- **Focus Areas**: 🔧 Engineering (50%), 🔐 Auth (25%), 📦 CMS (18%), 🎨 Content Design (7%)
 
 ---
 
@@ -139,6 +139,47 @@
 
 ---
 
+🚀 #04 2025-12-09 | Role-Based Auth System | ✅ 45m | 🔐auth | 👥user-mgmt | 📁7f
+   • Implemented granular role-based access control (admin vs editor) using Clerk publicMetadata.
+   • Disabled public sign-ups in Clerk dashboard (invitation-only access).
+   • Created permission helper functions for server-side role validation with type safety.
+   • Protected admin-only routes (/admin/categories) while allowing editors full content management access.
+
+   📁 **Files Created** (3):
+   - src/lib/auth/permissions.ts - Permission helpers (getUserRole, requireAdmin, requireAdminOrEditor)
+   - src/lib/auth/ - New auth module directory
+   - src/types/clerk.d.ts - TypeScript type definitions for Clerk metadata
+
+   📁 **Files Modified** (4):
+   - src/app/admin/categories/page.tsx - Added requireAdmin() guard
+   - src/app/admin/layout.tsx - Dynamic role display from publicMetadata
+   - eslint.config.mjs - Added sanity/** to ignore patterns (fixed memory issues)
+   - AGENTS.md - Updated repository guidelines
+
+   ⚙️ **Key Functions Added** (3):
+   - getUserRole() - Fetch user role from Clerk metadata
+   - requireAdmin() - Server-side admin-only guard (redirects on fail)
+   - requireAdminOrEditor() - Server-side authenticated user guard
+
+   🏗️ **Permission Model**:
+   - **Both Roles**: Dashboard, article creation/editing, author management, settings
+   - **Admin Only**: Category management (structural changes)
+   - **Why**: Editors need authors/settings for daily ops; categories define site structure
+
+   🔐 **Security Approach**:
+   - Server-side validation: All checks via Server Components
+   - Invitation-only: Public sign-ups disabled in Clerk
+   - Graceful redirects: Uses redirect() instead of error pages
+   - Type-safe: TypeScript extensions for metadata
+
+   🛠️ **Technical Notes**:
+   - Uses Clerk's async clerkClient() (updated API)
+   - publicMetadata chosen for UI display (still server-validated)
+   - Minimal protection: Only categories restricted (trusted team model)
+   - Easy to extend: Add new roles via type union + helper function
+
+---
+
 ## Migration Progress
 
 ### Phase 1: Foundation ✅ (Completed prior)
@@ -152,6 +193,7 @@
 - ISR + revalidation
 - Preview mode
 - **Admin Dashboard with Clerk Auth**
+- **Role-Based Access Control (Admin/Editor)**
 - **Custom content blocks (Lead, Quote, Takeaways, Callout)**
 - **Article placement system**
 

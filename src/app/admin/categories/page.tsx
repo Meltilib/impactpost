@@ -1,4 +1,5 @@
 import { fetchCategories, fetchArticlesForAdmin } from '@/lib/admin/actions';
+import { requireAdmin } from '@/lib/auth/permissions';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { CategoriesManager } from '@/components/admin/categories-manager';
@@ -10,6 +11,8 @@ interface AdminArticle {
 export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage() {
+  await requireAdmin();
+
   const [categories, articles] = await Promise.all([
     fetchCategories(),
     fetchArticlesForAdmin(),

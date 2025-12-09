@@ -70,7 +70,9 @@ function AdminSidebar() {
               <p className="text-sm font-medium truncate">
                 {user?.firstName || user?.emailAddresses[0]?.emailAddress}
               </p>
-              <p className="text-xs text-white/60">Editor</p>
+              <p className="text-xs text-white/60 capitalize">
+                {(user?.publicMetadata?.role as string) || 'User'}
+              </p>
             </div>
           </div>
         </div>

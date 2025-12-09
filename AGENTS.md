@@ -1,11 +1,12 @@
 # Repository Guidelines
 
 ## Project Structure & Modules
-- `src/app`: App Router pages, layouts, and route handlers; route folders stay lowercase.
-- `src/components`: Reusable UI pieces; files are kebab-case, exports PascalCase.
-- `src/lib`: Data/constants and helpers; shared imports use the `@/` alias from `tsconfig.json`.
-- `src/assets` and `public`: Local images and static assets—prefer these with `next/image`.
-- `src/types`: Shared TypeScript types and interfaces.
+- Top-level: `public/` (static assets), `sanity/` (CMS config), `src/` (app code), config at repo root (`next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, etc.).
+- `src/app`: App Router pages/layouts; key routes include `/` (`page.tsx`), `/news` + `/news/[slug]`, `/section/[category]`, `/about`, admin area (`/admin` with authors, categories, new, settings), API routes (`api/preview`, `api/revalidate`, `api/disable-draft`), shared shell (`layout.tsx`, `globals.css`, `error.tsx`, `not-found.tsx`).
+- `src/components`: UI building blocks; admin tools (article-form, authors-manager, categories-manager, image-upload, rich-editor, ticker-manager), content/UI pieces (article-card, portable-text), layout (header, footer, ticker), primitives (`ui/button`).
+- `src/lib`: Domain helpers and Sanity integration; admin actions, portable-text converter, TipTap extensions; shared constants/data/utils; Sanity client/fetch/image/mappers/queries/write-client modules.
+- `src/assets`: Project images under `src/assets/images`; prefer `next/image` and local assets over hotlinking.
+- `src/types`: Shared TypeScript interfaces and types used across app/lib/components.
 
 ## Setup, Build, and Run
 - Install: `npm install` (npm lockfile; Node 18+).
