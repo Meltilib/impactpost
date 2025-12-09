@@ -227,7 +227,7 @@ export interface AuthorPayload {
   role?: string;
   slug: string;
   bio?: string;
-  imageAssetId?: string;
+  imageAssetId?: string | null;
 }
 
 export async function fetchAuthorById(id: string) {
