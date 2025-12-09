@@ -4,7 +4,7 @@ import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide
 import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
 import { CONTENT_PILLARS } from '@/lib/constants';
-import { fetchFeaturedStory, fetchRecentStories, fetchEvents } from '@/lib/sanity/fetch';
+import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents } from '@/lib/sanity/fetch';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
 import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
@@ -14,9 +14,10 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch data from Sanity (falls back to static data if Sanity not configured)
-  const [featuredStory, recentStories, events] = await Promise.all([
+  const [featuredStory, recentStories, sidebarStories, events] = await Promise.all([
     fetchFeaturedStory(),
     fetchRecentStories(),
+    fetchSidebarStories(),
     fetchEvents(),
   ]);
   return (
@@ -35,7 +36,7 @@ export default async function HomePage() {
               <div className="absolute -right-4 -top-4 w-20 h-20 bg-white rounded-full opacity-50 blur-xl" />
               <h3 className="font-heavy text-2xl mb-4 uppercase">Community Pulse</h3>
               <div className="flex flex-col divide-y-2 divide-black/10">
-                {recentStories.slice(0, 3).map(story => (
+                {(sidebarStories.length > 0 ? sidebarStories : recentStories.slice(0, 3)).map(story => (
                   <ArticleCard key={story.id} story={story} minimal />
                 ))}
               </div>

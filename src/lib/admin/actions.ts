@@ -85,10 +85,17 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
 
     await writeClient.patch(id).set(updates).commit();
     
+    // Revalidate all relevant paths
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
     revalidatePath('/section');
+    // Revalidate specific article page if slug is provided
+    if (data.slug) {
+      revalidatePath(`/news/${data.slug}`);
+    }
+    // Force revalidate category pages
+    revalidatePath('/section/[category]', 'page');
     
     return { success: true };
   } catch (error) {

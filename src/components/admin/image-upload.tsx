@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { Upload, X } from 'lucide-react';
 
@@ -14,6 +14,13 @@ export function ImageUpload({ value, onChange, onUpload }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+
+  // Sync preview with value prop when it changes (e.g., on page load with initial data)
+  useEffect(() => {
+    if (value && value !== preview && !isUploading) {
+      setPreview(value);
+    }
+  }, [value, preview, isUploading]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {

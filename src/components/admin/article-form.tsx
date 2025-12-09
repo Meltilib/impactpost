@@ -369,7 +369,7 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
                 className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
                 min={1}
               />
-              <p className="text-sm text-gray-500 mt-1">Lower number = higher priority</p>
+              <p className="text-sm text-gray-500 mt-1">Lower number = higher priority (1 appears first). Default: 100</p>
             </div>
           </div>
         </div>
