@@ -80,6 +80,25 @@ export function RichEditor({ content, initialDoc, onChange, onImageUpload }: Ric
     }
   }, [editor, content, onChange]);
 
+  // Sync initialDoc to editor when editor is ready (handles SSR hydration timing)
+  useEffect(() => {
+    if (!editor || !initialDoc) return;
+
+    // Check if editor is empty (only has placeholder content)
+    const currentJson = editor.getJSON();
+    const hasRealContent = currentJson.content?.some((node: Record<string, unknown>) => {
+      if (node.type !== 'paragraph') return true;
+      const nodeContent = node.content as Array<{ text?: string }> | undefined;
+      return nodeContent?.some((child) => child.text && child.text.trim().length > 0);
+    });
+
+    // If editor is empty but initialDoc has content, set it
+    const initialContent = initialDoc.content as unknown[] | undefined;
+    if (!hasRealContent && initialContent && initialContent.length > 0) {
+      editor.commands.setContent(initialDoc);
+    }
+  }, [editor, initialDoc]);
+
   const addImage = useCallback(async () => {
     const input = document.createElement('input');
     input.type = 'file';
