@@ -145,27 +145,33 @@ export function convertPortableTextToTiptapDoc(portableText: unknown): Record<st
   }).flat().filter(Boolean);
 
   // Fallback: never return an empty document—use a blank paragraph so editor renders content area.
-  const safeContent = content.length > 0 ? content : [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }];
+  // Note: empty paragraphs should have empty content array, not empty text nodes
+  const safeContent = content.length > 0 ? content : [{ type: 'paragraph', content: [] }];
 
   return { type: 'doc', content: safeContent };
 }
 
 function textSpansToTiptap(children?: TextSpan[], fallbackText?: string) {
   const spans = children && children.length > 0 ? children : [{ text: fallbackText || '', marks: [] }];
-  return spans.map((span: TextSpan) => ({
-    type: 'text',
-    text: span.text || '',
-    marks: (span.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
-  }));
+  const textNodes = spans
+    .filter((span: TextSpan) => span.text && span.text.length > 0)
+    .map((span: TextSpan) => ({
+      type: 'text',
+      text: span.text,
+      marks: (span.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+    }));
+  return textNodes;
 }
 
 function portableBlockToTiptap(block: PortableBlock) {
   const style = block.style as string || 'normal';
-  const content = ((block.children || []) as TextSpan[]).map((child: TextSpan) => ({
-    type: 'text',
-    text: child.text || '',
-    marks: (child.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
-  }));
+  const content = ((block.children || []) as TextSpan[])
+    .filter((child: TextSpan) => child.text && child.text.length > 0)
+    .map((child: TextSpan) => ({
+      type: 'text',
+      text: child.text,
+      marks: (child.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+    }));
 
   if (block.listItem === 'bullet') {
     return {

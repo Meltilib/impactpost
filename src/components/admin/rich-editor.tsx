@@ -52,7 +52,7 @@ export function RichEditor({ content, initialDoc, onChange, onImageUpload }: Ric
       CalloutBoxExtension,
       LeadParagraphExtension,
     ],
-    content: initialDoc || content || { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }] },
+    content: initialDoc || content || { type: 'doc', content: [{ type: 'paragraph', content: [] }] },
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML(), editor.getJSON());
