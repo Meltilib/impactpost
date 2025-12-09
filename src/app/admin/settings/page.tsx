@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { fetchTickerSettings } from '@/lib/admin/actions';
 import { TickerManager } from '@/components/admin/ticker-manager';
+import { requireAdmin } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ const FALLBACK_ITEMS = [
 ];
 
 export default async function SettingsPage() {
+  await requireAdmin();
   const settings = await fetchTickerSettings();
   const items = settings?.tickerItems?.map((item: { text?: string }) => item?.text).filter(Boolean) || FALLBACK_ITEMS;
   const isActive = settings?.isTickerActive ?? true;

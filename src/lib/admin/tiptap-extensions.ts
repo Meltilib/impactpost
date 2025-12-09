@@ -157,7 +157,7 @@ export const KeyTakeawaysExtension = Node.create({
           if (data) {
             try {
               return { items: JSON.parse(data) };
-            } catch (e) {
+            } catch {
               // fall through to text extraction
             }
           }

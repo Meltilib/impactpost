@@ -1,9 +1,9 @@
 # IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 4
+- **Total Implementations**: 5
 - **Success Rate**: 100%
-- **Focus Areas**: 🔧 Engineering (50%), 🔐 Auth (25%), 📦 CMS (18%), 🎨 Content Design (7%)
+- **Focus Areas**: 🔧 Engineering (58%), 🔐 Auth (26%), 📦 CMS (11%), 🎨 Content Design (5%)
 
 ---
 
@@ -158,6 +158,34 @@
 
    ⚙️ **Key Functions Added** (3):
    - getUserRole() - Fetch user role from Clerk metadata
+
+---
+
+🚀 #05 2025-12-09 | Admin Hardening & Offline Fonts | ✅ 60m | 🔐auth | 🔧engineering | 🛡️security | 📁9f
+   • Fixed Clerk middleware to allow `/admin/sign-in` while enforcing auth on every other `/admin` and `/api/admin` route.
+   • Wrapped every admin page and server action with `requireAdmin()` / `requireAdminOrEditor()`, and locked down `/api/admin/upload`.
+   • Made `getUserRole()` resilient when Clerk is unconfigured (local dev now works without crashing).
+   • Vendored Inter, Space Grotesk, and Archivo Black fonts into `public/fonts/**` and switched to `next/font/local` to unblock offline builds.
+
+   📁 **Files Created** (4):
+   - Implementation/05-admin-hardening-offline-fonts-251209.md - Detailed write-up
+   - public/fonts/inter/Inter-Regular.ttf - Local Inter regular font
+   - public/fonts/inter/Inter-Bold.ttf - Local Inter bold font
+   - public/fonts/archivo-black/ArchivoBlack-Regular.ttf & public/fonts/space-grotesk/*.ttf - Local Archivo & Space Grotesk assets
+
+   📁 **Files Modified** (10):
+   - src/middleware.ts - Route matcher fixes for sign-in + admin APIs
+   - src/lib/auth/permissions.ts - Guarded `getUserRole`, new Clerk-safe fallback
+   - src/app/admin/{page,new,edit,authors,settings}/page.tsx - Added role guards
+   - src/lib/admin/actions.ts - Added guards to every server action
+   - src/app/api/admin/upload/route.ts - Rejects unauthenticated uploads
+   - src/app/layout.tsx - Switched to `next/font/local`
+   - src/components/admin/article-form.tsx / src/components/admin/rich-editor.tsx / src/components/portable-text.tsx / src/lib/admin/portable-text-converter.ts / src/lib/admin/tiptap-extensions.ts - Type-safe editor + lint cleanups
+
+   ⚙️ **Key Outcomes**:
+   - Admin sign-in page works again; unauthenticated users no longer loop.
+   - Server-side mutations and asset uploads now enforce Clerk roles.
+   - Builds no longer depend on Google Fonts network access; lint stays green.
    - requireAdmin() - Server-side admin-only guard (redirects on fail)
    - requireAdminOrEditor() - Server-side authenticated user guard
 

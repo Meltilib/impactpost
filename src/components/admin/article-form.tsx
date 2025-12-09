@@ -316,7 +316,7 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
         <div>
           <label className="block font-bold mb-2">Content</label>
           <RichEditor
-            initialDoc={initialDoc as any}
+            initialDoc={initialDoc}
             onChange={(html, json) => {
               setEditorJson(json);
             }}

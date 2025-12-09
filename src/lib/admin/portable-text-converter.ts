@@ -12,6 +12,22 @@ import {
  * Handles all custom block types and standard Portable Text structures
  */
 
+interface PortableBlock {
+  _type: string;
+  _key?: string;
+  [key: string]: unknown;
+}
+
+interface TextSpan {
+  text: string;
+  marks?: string[];
+  [key: string]: unknown;
+}
+
+interface TiptapMark {
+  type: string;
+}
+
 /**
  * Convert Sanity Portable Text to HTML string for Tiptap editor
  * Maps: leadParagraph, styledQuote, keyTakeaways, calloutBox, block, image
@@ -82,18 +98,18 @@ export function convertPortableTextToHTML(portableText: unknown): string {
 export function convertPortableTextToTiptapDoc(portableText: unknown): Record<string, unknown> {
   const blocks = normalizeLegacyPortableText(Array.isArray(portableText) ? portableText : []);
 
-  const content = blocks.map((block: any) => {
+  const content = (blocks as PortableBlock[]).map((block) => {
     switch (block._type) {
       case 'leadParagraph':
         return {
           type: 'leadParagraph',
-          content: textSpansToTiptap(block.children, block.text),
+          content: textSpansToTiptap(block.children as TextSpan[] | undefined, block.text as string | undefined),
         };
       case 'block':
         if (block.style === 'lead') {
           return {
             type: 'leadParagraph',
-            content: textSpansToTiptap(block.children, block.text),
+            content: textSpansToTiptap(block.children as TextSpan[] | undefined, block.text as string | undefined),
           };
         }
         return portableBlockToTiptap(block);
@@ -134,21 +150,21 @@ export function convertPortableTextToTiptapDoc(portableText: unknown): Record<st
   return { type: 'doc', content: safeContent };
 }
 
-function textSpansToTiptap(children?: any[], fallbackText?: string) {
+function textSpansToTiptap(children?: TextSpan[], fallbackText?: string) {
   const spans = children && children.length > 0 ? children : [{ text: fallbackText || '', marks: [] }];
-  return spans.map((span: any) => ({
+  return spans.map((span: TextSpan) => ({
     type: 'text',
     text: span.text || '',
-    marks: (span.marks || []).map((mark: string) => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+    marks: (span.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
   }));
 }
 
-function portableBlockToTiptap(block: any) {
-  const style = block.style || 'normal';
-  const content = (block.children || []).map((child: any) => ({
+function portableBlockToTiptap(block: PortableBlock) {
+  const style = block.style as string || 'normal';
+  const content = ((block.children || []) as TextSpan[]).map((child: TextSpan) => ({
     type: 'text',
     text: child.text || '',
-    marks: (child.marks || []).map((mark: string) => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
+    marks: (child.marks || []).map((mark: string): TiptapMark => ({ type: mark === 'strong' ? 'bold' : mark === 'em' ? 'italic' : mark === 'underline' ? 'underline' : mark })),
   }));
 
   if (block.listItem === 'bullet') {
@@ -308,16 +324,7 @@ function getBlockText(block: { children?: { text?: string }[] }): string {
   return children.map((child) => (typeof child.text === 'string' ? child.text : '')).join(' ');
 }
 
-function extractPlainText(content?: unknown[]): string {
-  if (!content) return '';
-  return content
-    .map((child: any) => {
-      if (child.type === 'text') return child.text || '';
-      if (child.content) return extractPlainText(child.content);
-      return '';
-    })
-    .join(' ');
-}
+
 
 /**
  * Convert a Portable Text span to HTML

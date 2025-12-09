@@ -15,7 +15,7 @@ import { StyledQuoteExtension, KeyTakeawaysExtension, CalloutBoxExtension, LeadP
 
 interface RichEditorProps {
   content?: string;
-  initialDoc?: any;
+  initialDoc?: Record<string, unknown>;
   onChange: (content: string, json: unknown) => void;
   onImageUpload?: (file: File) => Promise<string | null>;
 }

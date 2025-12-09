@@ -134,7 +134,7 @@ const components: PortableTextComponents = {
     leadParagraph: ({ value }: { value: LeadParagraphValue }) => (
       <p className="lead-paragraph mb-6 leading-relaxed text-xl text-gray-800 font-bold first-letter:text-5xl first-letter:font-heavy first-letter:text-brand-purple first-letter:mr-2 first-letter:float-left first-letter:leading-none">
         {value.children
-          ? (value.children as any[]).map((child) => ('text' in child ? (child as any).text : ''))
+          ? (value.children as unknown[]).map((child: unknown) => ('text' in (child as Record<string, unknown>) ? (child as Record<string, unknown>).text : '')).join('')
           : value.text}
       </p>
     ),
@@ -235,7 +235,7 @@ export default ArticleBody;
 
 function normalizeLeadBlocks(blocks: PortableTextBlock[]): PortableTextBlock[] {
   return blocks.map((block, index) => {
-    const b = block as any;
+    const b = block as unknown as Record<string, unknown>;
 
     // Convert legacy leadParagraph object to block style lead
     if (b._type === 'leadParagraph') {
@@ -243,11 +243,11 @@ function normalizeLeadBlocks(blocks: PortableTextBlock[]): PortableTextBlock[] {
       const children = b.children || [{ _type: 'span', _key: 'span-0', text, marks: [] }];
       return {
         _type: 'block',
-        _key: b._key || `lead-${index}`,
+        _key: (b._key as string) || `lead-${index}`,
         style: 'lead',
         markDefs: [],
         children,
-      } as any;
+      } as unknown as PortableTextBlock;
     }
 
     // If style already marked as lead, leave it

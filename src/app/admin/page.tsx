@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { Plus, Edit, Eye } from 'lucide-react';
 import { fetchArticlesForAdmin } from '@/lib/admin/actions';
+import { requireAdminOrEditor } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
+  await requireAdminOrEditor();
   const articles = await fetchArticlesForAdmin();
 
   return (

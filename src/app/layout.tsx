@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Archivo_Black, Space_Grotesk } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Ticker } from '@/components/layout/ticker';
@@ -8,21 +8,48 @@ import './globals.css';
 
 export const revalidate = 60;
 
-const inter = Inter({
-  subsets: ['latin'],
+const inter = localFont({
+  src: [
+    {
+      path: '../../public/fonts/inter/Inter-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/inter/Inter-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-sans',
   display: 'swap',
 });
 
-const archivoBlack = Archivo_Black({
-  weight: '400',
-  subsets: ['latin'],
+const archivoBlack = localFont({
+  src: [
+    {
+      path: '../../public/fonts/archivo-black/ArchivoBlack-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+  ],
   variable: '--font-heavy',
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
+const spaceGrotesk = localFont({
+  src: [
+    {
+      path: '../../public/fonts/space-grotesk/SpaceGrotesk-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/space-grotesk/SpaceGrotesk-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   variable: '--font-display',
   display: 'swap',
 });

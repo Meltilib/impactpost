@@ -1,13 +1,23 @@
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
+const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
 export async function getUserRole(): Promise<'admin' | 'editor' | null> {
-  const { userId } = await auth();
-  if (!userId) return null;
-  
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  return (user.publicMetadata.role as 'admin' | 'editor') || null;
+  if (!isClerkConfigured) return null;
+
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
+    
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+    const role = user.publicMetadata?.role;
+    return role === 'admin' || role === 'editor' ? role : null;
+  } catch (error) {
+    console.warn('[auth] Unable to load Clerk user role:', error);
+    return null;
+  }
 }
 
 export async function requireAdmin() {

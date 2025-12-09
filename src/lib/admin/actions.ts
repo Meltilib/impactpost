@@ -2,6 +2,7 @@
 
 import { writeClient } from '@/lib/sanity/write-client';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin, requireAdminOrEditor } from '@/lib/auth/permissions';
 
 export interface ArticleFormData {
   title: string;
@@ -20,6 +21,7 @@ export interface ArticleFormData {
 }
 
 export async function createArticle(data: ArticleFormData) {
+  await requireAdminOrEditor();
   try {
     const doc = {
       _type: 'article',
@@ -56,6 +58,7 @@ export async function createArticle(data: ArticleFormData) {
 }
 
 export async function updateArticle(id: string, data: Partial<ArticleFormData>) {
+  await requireAdminOrEditor();
   try {
     const updates: Record<string, unknown> = {};
     
@@ -95,6 +98,7 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
 }
 
 export async function deleteArticle(id: string) {
+  await requireAdminOrEditor();
   try {
     await writeClient.delete(id);
     
@@ -251,6 +255,7 @@ export async function fetchAuthorById(id: string) {
 }
 
 export async function createAuthor(payload: AuthorPayload) {
+  await requireAdmin();
   try {
     const existing = await writeClient.fetch(
       'count(*[_type == "author" && slug.current == $slug])',
@@ -292,6 +297,7 @@ export async function createAuthor(payload: AuthorPayload) {
 }
 
 export async function updateAuthor(id: string, payload: Partial<AuthorPayload>) {
+  await requireAdmin();
   try {
     if (payload.slug) {
       const existing = await writeClient.fetch(
@@ -334,6 +340,7 @@ export async function updateAuthor(id: string, payload: Partial<AuthorPayload>) 
 }
 
 export async function deleteAuthor(id: string) {
+  await requireAdmin();
   try {
     const references = await writeClient.fetch(
       'count(*[_type == "article" && references($id)])',
@@ -388,6 +395,7 @@ export async function fetchCategoryById(id: string) {
 }
 
 export async function createCategory(payload: CategoryPayload) {
+  await requireAdmin();
   try {
     const existing = await writeClient.fetch(
       'count(*[_type == "category" && slug.current == $slug])',
@@ -422,6 +430,7 @@ export async function createCategory(payload: CategoryPayload) {
 }
 
 export async function updateCategory(id: string, payload: Partial<CategoryPayload>) {
+  await requireAdmin();
   try {
     if (payload.slug) {
       const existing = await writeClient.fetch(
@@ -458,6 +467,7 @@ export async function updateCategory(id: string, payload: Partial<CategoryPayloa
 }
 
 export async function deleteCategory(id: string) {
+  await requireAdmin();
   try {
     const references = await writeClient.fetch(
       'count(*[_type == "article" && references($id)])',
@@ -507,6 +517,7 @@ export async function fetchTickerSettings() {
 }
 
 export async function updateTickerSettings(payload: TickerPayload) {
+  await requireAdmin();
   try {
     await writeClient.createOrReplace({
       _id: 'siteSettings',

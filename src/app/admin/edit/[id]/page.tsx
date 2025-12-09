@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ArticleForm } from '@/components/admin/article-form';
 import { fetchArticleById } from '@/lib/admin/actions';
+import { requireAdminOrEditor } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,7 @@ interface EditArticlePageProps {
 
 export default async function EditArticlePage({ params }: EditArticlePageProps) {
   const { id } = await params;
+  await requireAdminOrEditor();
   const article = await fetchArticleById(id);
 
   if (!article) {

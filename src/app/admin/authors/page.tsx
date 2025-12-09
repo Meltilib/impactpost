@@ -2,6 +2,7 @@ import { fetchAuthors, fetchArticlesForAdmin } from '@/lib/admin/actions';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AuthorsManager } from '@/components/admin/authors-manager';
+import { requireAdmin } from '@/lib/auth/permissions';
 
 interface AdminArticle {
   author?: { _id: string; name: string };
@@ -10,6 +11,7 @@ interface AdminArticle {
 export const dynamic = 'force-dynamic';
 
 export default async function AuthorsPage() {
+  await requireAdmin();
   const [authors, articles] = await Promise.all([
     fetchAuthors(),
     fetchArticlesForAdmin(),
