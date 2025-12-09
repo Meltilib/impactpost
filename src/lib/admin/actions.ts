@@ -366,6 +366,47 @@ export async function deleteAuthor(id: string) {
   }
 }
 
+export async function reassignAndDeleteAuthor(sourceId: string, targetId: string) {
+  await requireAdmin();
+  if (sourceId === targetId) {
+    return { success: false, error: 'Select different authors to reassign.' };
+  }
+
+  try {
+    const articles = await writeClient.fetch<{ _id: string }[]>(
+      '*[_type == "article" && references($sourceId)]{_id}',
+      { sourceId }
+    );
+
+    const transaction = writeClient.transaction();
+    articles.forEach((article) => {
+      transaction.patch(article._id, {
+        set: {
+          author: {
+            _type: 'reference',
+            _ref: targetId,
+          },
+        },
+      });
+    });
+
+    transaction.delete(sourceId);
+    await transaction.commit();
+
+    revalidatePath('/admin/authors');
+    revalidatePath('/admin');
+    revalidatePath('/admin/new');
+    revalidatePath('/admin/edit');
+    revalidatePath('/');
+    revalidatePath('/news');
+
+    return { success: true, reassigned: articles.length };
+  } catch (error) {
+    console.error('Error reassigning and deleting author:', error);
+    return { success: false, error: 'Failed to reassign author' };
+  }
+}
+
 // ------- Categories -------
 export interface CategoryPayload {
   title: string;

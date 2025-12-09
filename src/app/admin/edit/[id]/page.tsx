@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ArticleForm } from '@/components/admin/article-form';
-import { fetchArticleById } from '@/lib/admin/actions';
+import { fetchArticleById, fetchAuthors, fetchCategories } from '@/lib/admin/actions';
 import { requireAdminOrEditor } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,11 @@ interface EditArticlePageProps {
 export default async function EditArticlePage({ params }: EditArticlePageProps) {
   const { id } = await params;
   await requireAdminOrEditor();
-  const article = await fetchArticleById(id);
+  const [article, authors, categories] = await Promise.all([
+    fetchArticleById(id),
+    fetchAuthors(),
+    fetchCategories(),
+  ]);
 
   if (!article) {
     notFound();
@@ -21,6 +25,8 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
   return (
     <ArticleForm
       mode="edit"
+      authors={authors}
+      categories={categories}
       initialData={{
         _id: article._id,
         title: article.title,

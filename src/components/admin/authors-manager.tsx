@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createAuthor, updateAuthor, deleteAuthor } from '@/lib/admin/actions';
+import { createAuthor, updateAuthor, deleteAuthor, reassignAndDeleteAuthor } from '@/lib/admin/actions';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -33,15 +33,19 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, startDelete] = useTransition();
+  const [isReassigning, startReassign] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [bio, setBio] = useState('');
   const [slug, setSlug] = useState('');
-  const [imageAssetId, setImageAssetId] = useState<string | undefined>();
+  const [imageAssetId, setImageAssetId] = useState<string | null | undefined>();
   const [imageUrl, setImageUrl] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [reassignSource, setReassignSource] = useState('');
+  const [reassignTarget, setReassignTarget] = useState('');
+  const linkedAuthors = authors.filter((author) => (articleCounts[author._id] || 0) > 0);
 
   const resetForm = () => {
     setEditingId(null);
@@ -72,13 +76,18 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
     }
   };
 
+  const handleClearHeadshot = () => {
+    setImageAssetId(null);
+    setImageUrl(undefined);
+  };
+
   const handleEdit = (author: Author) => {
     setEditingId(author._id);
     setName(author.name);
     setRole(author.role || '');
     setBio(author.bio || '');
     setSlug(author.slug || slugify(author.name));
-    setImageAssetId(author.image?.asset?._id);
+    setImageAssetId(author.image?.asset?._id || undefined);
     setImageUrl(author.image?.asset?.url);
     setError(null);
     setSuccess(null);
@@ -98,7 +107,8 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
       role: role.trim() || undefined,
       bio: bio.trim() || undefined,
       slug: finalSlug,
-      imageAssetId,
+      // Preserve explicit null when user clears the photo so backend can delete the image ref
+      imageAssetId: imageAssetId === null ? null : imageAssetId || undefined,
     };
     const result = editingId
       ? await updateAuthor(editingId, payload)
@@ -128,6 +138,26 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
     });
   };
 
+  const handleReassign = () => {
+    if (!reassignSource || !reassignTarget || reassignSource === reassignTarget) {
+      setError('Select a source author and a different replacement.');
+      return;
+    }
+    startReassign(async () => {
+      setError(null);
+      setSuccess(null);
+      const result = await reassignAndDeleteAuthor(reassignSource, reassignTarget);
+      if (!result.success) {
+        setError(result.error || 'Unable to reassign author.');
+        return;
+      }
+      setSuccess(`Reassigned ${result.reassigned ?? 0} article(s) and removed the original author.`);
+      setReassignSource('');
+      setReassignTarget('');
+      router.refresh();
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -153,11 +183,21 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {authors.map((author) => (
-              <tr key={author._id} className="hover:bg-gray-50">
+            {authors.map((author) => {
+              const linkedArticles = articleCounts[author._id] || 0;
+              const deleteDisabled = isDeleting || linkedArticles > 0;
+              return (
+                <tr key={author._id} className="hover:bg-gray-50">
                 <td className="p-4 font-medium">{author.name}</td>
                 <td className="p-4 text-gray-600">{author.role || '—'}</td>
-                <td className="p-4 text-center">{articleCounts[author._id] || 0}</td>
+                <td className="p-4 text-center">
+                  <div className="flex flex-col items-center gap-1">
+                    <span>{linkedArticles}</span>
+                    {linkedArticles > 0 && (
+                      <span className="text-xs font-semibold text-orange-600">In use</span>
+                    )}
+                  </div>
+                </td>
                 <td className="p-4">
                   <div className="flex justify-end gap-2">
                     <button
@@ -171,16 +211,72 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
                       type="button"
                       onClick={() => handleDelete(author._id)}
                       className="p-2 hover:bg-gray-100 rounded border border-black/10 text-red-600 disabled:opacity-50"
-                      disabled={isDeleting}
+                      disabled={deleteDisabled}
+                      title={linkedArticles > 0 ? 'Reassign articles to another author before deleting.' : 'Delete author'}
                     >
                       {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                     </button>
                   </div>
                 </td>
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      <div className="bg-white border-2 border-black shadow-hard p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-xl">Reassign &amp; Delete</h3>
+          <span className="text-sm text-gray-500">Moves articles to a new author before deletion.</span>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-bold mb-2">Author to replace</label>
+            <select
+              value={reassignSource}
+              onChange={(e) => setReassignSource(e.target.value)}
+              className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+            >
+              <option value="">Select author...</option>
+              {linkedAuthors.map((author) => (
+                <option key={author._id} value={author._id}>
+                  {author.name} ({articleCounts[author._id] || 0} articles)
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block font-bold mb-2">Replacement author</label>
+            <select
+              value={reassignTarget}
+              onChange={(e) => setReassignTarget(e.target.value)}
+              className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+            >
+              <option value="">Select replacement...</option>
+              {authors
+                .filter((author) => author._id !== reassignSource)
+                .map((author) => (
+                  <option key={author._id} value={author._id}>
+                    {author.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleReassign}
+          disabled={
+            isReassigning ||
+            !reassignSource ||
+            !reassignTarget ||
+            reassignSource === reassignTarget
+          }
+          className="px-4 py-2 bg-brand-yellow border-2 border-black font-bold shadow-hard hover:shadow-none hover:translate-x-1 hover:translate-y-1 disabled:opacity-60"
+        >
+          {isReassigning ? 'Reassigning…' : 'Reassign & Delete'}
+        </button>
       </div>
 
       <div className="bg-white border-2 border-black shadow-hard p-6 space-y-4">
@@ -252,13 +348,22 @@ export function AuthorsManager({ authors, articleCounts }: Props) {
                   className="block w-full text-sm text-gray-700"
                 />
                 {imageUrl && (
-                  <Image
-                    src={imageUrl}
-                    alt="Preview"
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-full border-2 border-black object-cover"
-                  />
+                  <>
+                    <Image
+                      src={imageUrl}
+                      alt="Preview"
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 rounded-full border-2 border-black object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleClearHeadshot}
+                      className="text-sm text-red-600 underline-offset-2 hover:underline"
+                    >
+                      Clear photo
+                    </button>
+                  </>
                 )}
               </div>
               <p className="text-sm text-gray-500 mt-1">Optional. 1:1 crop looks best.</p>

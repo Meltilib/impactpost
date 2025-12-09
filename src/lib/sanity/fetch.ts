@@ -1,5 +1,5 @@
 import { draftMode } from 'next/headers';
-import { client, previewClient } from './client';
+import { client, previewClient, logSanityFallback } from './client';
 import {
   featuredArticleQuery,
   recentArticlesQuery,
@@ -62,7 +62,10 @@ export async function fetchFeaturedStory(): Promise<Story> {
       }
     } catch (error) {
       console.error('Error fetching featured article from Sanity:', error);
+      logSanityFallback('featuredStory', error);
     }
+  } else {
+    logSanityFallback('featuredStory', 'client unavailable');
   }
   
   // Fallback to static data
@@ -81,7 +84,10 @@ export async function fetchRecentStories(): Promise<Story[]> {
       }
     } catch (error) {
       console.error('Error fetching recent articles from Sanity:', error);
+      logSanityFallback('recentStories', error);
     }
+  } else {
+    logSanityFallback('recentStories', 'client unavailable');
   }
   
   // Fallback to static data
@@ -100,7 +106,10 @@ export async function fetchSidebarStories(): Promise<Story[]> {
       }
     } catch (error) {
       console.error('Error fetching sidebar articles from Sanity:', error);
+      logSanityFallback('sidebarStories', error);
     }
+  } else {
+    logSanityFallback('sidebarStories', 'client unavailable');
   }
   
   // Fallback to static data - use first 3 recent stories
@@ -119,7 +128,10 @@ export async function fetchAllStories(): Promise<Story[]> {
       }
     } catch (error) {
       console.error('Error fetching all articles from Sanity:', error);
+      logSanityFallback('allStories', error);
     }
+  } else {
+    logSanityFallback('allStories', 'client unavailable');
   }
   
   // Fallback to static data
@@ -144,7 +156,10 @@ export async function fetchStoryBySlug(slug: string): Promise<{ story: Story; bo
       }
     } catch (error) {
       console.error('Error fetching article from Sanity:', error);
+      logSanityFallback('storyBySlug', error);
     }
+  } else {
+    logSanityFallback('storyBySlug', `client unavailable for slug ${slug}`);
   }
   
   if (!sanityClient) {
@@ -174,7 +189,10 @@ export async function fetchStoriesByCategory(category: string): Promise<Story[]>
       }
     } catch (error) {
       console.error('Error fetching articles by category from Sanity:', error);
+      logSanityFallback('storiesByCategory', error);
     }
+  } else {
+    logSanityFallback('storiesByCategory', `client unavailable for ${category}`);
   }
   
   // Fallback to static data
@@ -194,7 +212,10 @@ export async function fetchCategoryBySlug(slug: string): Promise<SanityCategory 
       return category;
     } catch (error) {
       console.error('Error fetching category from Sanity:', error);
+      logSanityFallback('categoryBySlug', error);
     }
+  } else {
+    logSanityFallback('categoryBySlug', `client unavailable for ${slug}`);
   }
   
   return null;
@@ -212,7 +233,10 @@ export async function fetchEvents(): Promise<Event[]> {
       }
     } catch (error) {
       console.error('Error fetching events from Sanity:', error);
+      logSanityFallback('events', error);
     }
+  } else {
+    logSanityFallback('events', 'client unavailable');
   }
   
   // Fallback to static data
@@ -231,7 +255,10 @@ export async function fetchArticleSlugs(): Promise<string[]> {
       }
     } catch (error) {
       console.error('Error fetching article slugs from Sanity:', error);
+      logSanityFallback('articleSlugs', error);
     }
+  } else {
+    logSanityFallback('articleSlugs', 'client unavailable');
   }
   
   // Fallback to static data
@@ -250,7 +277,10 @@ export async function fetchCategorySlugs(): Promise<string[]> {
       }
     } catch (error) {
       console.error('Error fetching category slugs from Sanity:', error);
+      logSanityFallback('categorySlugs', error);
     }
+  } else {
+    logSanityFallback('categorySlugs', 'client unavailable');
   }
   
   // Fallback to static categories
@@ -278,7 +308,10 @@ export async function fetchTickerItems(): Promise<{ items: string[]; isActive: b
       }
     } catch (error) {
       console.error('Error fetching ticker items from Sanity:', error);
+      logSanityFallback('tickerItems', error);
     }
+  } else {
+    logSanityFallback('tickerItems', 'client unavailable');
   }
 
   return { items: DEFAULT_TICKER_ITEMS, isActive: true };

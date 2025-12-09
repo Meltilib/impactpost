@@ -7,17 +7,22 @@ import { Home, Plus, Users, FolderOpen, AlertTriangle } from 'lucide-react';
 
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
+type UserRole = 'admin' | 'editor';
+
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: Home },
   { href: '/admin/new', label: 'New Article', icon: Plus },
-  { href: '/admin/authors', label: 'Authors', icon: Users },
-  { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
-  { href: '/admin/settings', label: 'Settings', icon: AlertTriangle },
+  { href: '/admin/authors', label: 'Authors', icon: Users, roles: ['admin'] as UserRole[] },
+  { href: '/admin/categories', label: 'Categories', icon: FolderOpen, roles: ['admin'] as UserRole[] },
+  { href: '/admin/settings', label: 'Settings', icon: AlertTriangle, roles: ['admin'] as UserRole[] },
 ];
 
 function AdminSidebar() {
   const pathname = usePathname();
   const { user } = useUser();
+  const role = (user?.publicMetadata?.role as UserRole | undefined) ?? 'editor';
+  const filteredNavItems = navItems.filter((item) => !item.roles || item.roles.includes(role));
+  const roleLabel = role === 'admin' ? 'Admin Console' : 'Editor Workspace';
 
   return (
     <div className="flex h-screen">
@@ -27,12 +32,12 @@ function AdminSidebar() {
           <Link href="/admin" className="font-heavy text-xl">
             IMPACT POST
           </Link>
-          <p className="text-sm text-white/60 mt-1">Admin Dashboard</p>
+          <p className="text-sm text-white/60 mt-1">{roleLabel}</p>
         </div>
 
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const isActive = pathname === item.href || 
                 (item.href !== '/admin' && pathname.startsWith(item.href));
               const Icon = item.icon;
@@ -70,9 +75,14 @@ function AdminSidebar() {
               <p className="text-sm font-medium truncate">
                 {user?.firstName || user?.emailAddresses[0]?.emailAddress}
               </p>
-              <p className="text-xs text-white/60 capitalize">
-                {(user?.publicMetadata?.role as string) || 'User'}
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs capitalize text-white/70">
+                  {role}
+                </span>
+                <span className="text-[10px] uppercase tracking-widest border border-white/30 px-2 py-0.5 rounded-full text-white/80">
+                  {role === 'admin' ? 'Full Access' : 'Editor'}
+                </span>
+              </div>
             </div>
           </div>
         </div>

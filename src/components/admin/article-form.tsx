@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RichEditor } from './rich-editor';
 import { ImageUpload } from './image-upload';
-import { createArticle, updateArticle, fetchAuthors, fetchCategories } from '@/lib/admin/actions';
+import { createArticle, updateArticle } from '@/lib/admin/actions';
 import { convertPortableTextToTiptapDoc, convertTiptapToPortableText } from '@/lib/admin/portable-text-converter';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +23,8 @@ interface Category {
 
 interface ArticleFormProps {
   mode: 'create' | 'edit';
+  authors: Author[];
+  categories: Category[];
   initialData?: {
     _id?: string;
     title?: string;
@@ -50,12 +52,27 @@ function slugify(text: string): string {
     .trim();
 }
 
-export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
+function hasPortableTextContent(blocks: unknown): blocks is unknown[] {
+  if (!Array.isArray(blocks)) return false;
+  return blocks.some((block) => {
+    if (!block || typeof block !== 'object') return false;
+    const typed = block as { _type?: string; children?: { text?: string }[] };
+
+    if (typed._type && typed._type !== 'block') {
+      return true;
+    }
+
+    if (Array.isArray(typed.children)) {
+      return typed.children.some((child) => typeof child?.text === 'string' && child.text.trim().length > 0);
+    }
+    return false;
+  });
+}
+
+export function ArticleForm({ mode, authors, categories, initialData = {} }: ArticleFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authors, setAuthors] = useState<Author[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  
+
   // Form state
   const [title, setTitle] = useState(initialData.title || '');
   const [slug, setSlug] = useState(initialData.slug || '');
@@ -85,20 +102,7 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
     }
   }, [title, mode, initialData.slug]);
 
-  // Load authors and categories
-  useEffect(() => {
-    async function loadData() {
-      const [authorsData, categoriesData] = await Promise.all([
-        fetchAuthors(),
-        fetchCategories(),
-      ]);
-      setAuthors(authorsData);
-      setCategories(categoriesData);
-    }
-    loadData();
-  }, []);
-
-  // No-op: content now provided as Tiptap doc via initialDoc
+  // Authors and categories are provided by the server page to avoid client/server boundary errors
 
   const handleImageUpload = async (file: File): Promise<{ assetId: string; url: string } | null> => {
     const formData = new FormData();
@@ -144,10 +148,18 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
 
     setIsSubmitting(true);
 
-    try {
-      // Convert Tiptap JSON to Portable Text format
-      const portableTextBody = convertTiptapToPortableText(editorJson);
+    // Convert Tiptap JSON to Portable Text format
+    const portableTextBody = convertTiptapToPortableText(editorJson);
+    if (!hasPortableTextContent(portableTextBody)) {
+      setIsSubmitting(false);
+      console.error('Portable Text conversion returned empty content. Aborting save to prevent data loss.', {
+        editorJson,
+      });
+      alert('Article content looks empty or unsupported. Refresh the page before saving to avoid losing text.');
+      return;
+    }
 
+    try {
       const formData = {
         title,
         slug,
@@ -185,8 +197,15 @@ export function ArticleForm({ mode, initialData = {} }: ArticleFormProps) {
     }
   };
 
+  const missingReferenceData = authors.length === 0 || categories.length === 0;
+
   return (
     <div className="p-8 max-w-4xl">
+      {missingReferenceData && (
+        <div className="mb-6 rounded border-2 border-yellow-400 bg-yellow-50 p-4 text-sm text-yellow-900">
+          Unable to load authors or categories. Refresh the page after adding at least one author and category in Sanity.
+        </div>
+      )}
       <div className="flex justify-between items-center mb-8">
         <Link href="/admin" className="flex items-center gap-2 text-gray-600 hover:text-black">
           <ArrowLeft size={20} />

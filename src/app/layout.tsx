@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { Ticker } from '@/components/layout/ticker';
 import { SITE_CONFIG } from '@/lib/constants';
+import { isSanityEnabled } from '@/lib/sanity/client';
 import './globals.css';
 
 export const revalidate = 60;
@@ -123,6 +124,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (!isSanityEnabled && process.env.NODE_ENV !== 'production') {
+    console.warn('[Sanity] NEXT_PUBLIC_USE_SANITY is false – rendering fallback seed content.');
+  }
+
   return (
     <html lang="en" className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}>
       <body className="min-h-screen flex flex-col bg-brand-light font-sans antialiased selection:bg-brand-purple selection:text-white">
@@ -134,6 +139,11 @@ export default function RootLayout({
         </a>
         <Ticker />
         <Header />
+        {!isSanityEnabled && (
+          <div className="bg-yellow-100 border-y-2 border-yellow-400 text-yellow-900 px-4 py-2 text-center text-sm font-medium">
+            Live Sanity data is disabled. You&apos;re viewing placeholder stories until NEXT_PUBLIC_USE_SANITY is enabled.
+          </div>
+        )}
         <main id="main-content" className="flex-grow">
           {children}
         </main>

@@ -13,6 +13,7 @@
 - Dev server: `npm run dev` (http://localhost:3000).
 - Build: `npm run build`; start output with `npm run start`.
 - Lint: `npm run lint` (ESLint + Next.js rules).
+- Keep `NEXT_PUBLIC_USE_SANITY="true"` in every deployed environment. Setting it to `false` enables the fallback seed data and renders a yellow warning banner across the site; only toggle locally for offline work.
 
 ## Planning 
 - Always explain your findings in simple english. 
@@ -43,3 +44,4 @@
 - Changes to shared helpers or data in `src/lib` should include updated types in `src/types` and, when logic is added, a small spec or documented manual check.
 - Add global or app-wide typings in `src/types` or `global.d.ts`, and import via `@/` to keep paths consistent.
 - If lint/TS errors surface outside your change, mention them in the PR summary instead of suppressing with `any` or broad ignores.
+- The Authors admin page exposes a “Reassign & Delete” flow; always reassign articles before deleting an author with references (the delete button stays disabled until references drop to zero).
