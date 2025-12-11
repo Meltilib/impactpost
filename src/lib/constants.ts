@@ -11,10 +11,11 @@ export const SITE_CONFIG = {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'News', href: '/news' },
-  { label: 'Voices', href: '/section/community-voices' },
-  { label: 'Youth Hub', href: '/section/youth' },
-  { label: 'Multimedia', href: '/section/multimedia' },
   { label: 'Community', href: '/section/community' },
+  { label: 'Youth Hub', href: '/section/youth' },
+  { label: 'Wellness', href: '/section/wellness' },
+  { label: 'Business', href: '/section/business' },
+  { label: 'Issues', href: '/section/issues' },
   { label: 'About Us', href: '/about' },
 ];
 

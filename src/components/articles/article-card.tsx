@@ -64,7 +64,7 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
     >
       <div className={cn(
         'relative overflow-hidden border-2 border-black shadow-hard group-hover:shadow-hard-lg transition-all mb-4',
-        featured ? 'h-full min-h-[400px]' : 'h-64'
+        featured ? 'h-full min-h-[320px] md:min-h-[420px]' : 'h-64'
       )}>
         <Image
           src={story.imageUrl}
