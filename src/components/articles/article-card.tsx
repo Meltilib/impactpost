@@ -58,13 +58,12 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
     <Link 
       href={articleUrl} 
       className={cn(
-        'group block h-full flex flex-col',
-        featured && 'md:grid md:grid-cols-2 md:gap-8'
+        'group block h-full flex flex-col'
       )}
     >
       <div className={cn(
         'relative overflow-hidden border-2 border-black shadow-hard group-hover:shadow-hard-lg transition-all mb-4',
-        featured ? 'h-full min-h-[320px] md:min-h-[420px]' : 'h-64'
+        featured ? 'w-full aspect-video' : 'h-64'
       )}>
         <Image
           src={story.imageUrl}
@@ -84,7 +83,7 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
         </div>
       </div>
       
-      <div className={cn('flex flex-col flex-grow', featured && 'justify-center')}>
+      <div className={cn('flex flex-col flex-grow')}>
         <div className="flex items-center gap-2 mb-2">
           <div className="relative w-8 h-8 rounded-full border border-black overflow-hidden">
             <Image
