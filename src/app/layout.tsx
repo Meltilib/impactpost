@@ -57,6 +57,13 @@ const spaceGrotesk = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_CONFIG.url),
+  icons: {
+    icon: [
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    shortcut: '/icon.png',
+    apple: { url: '/icon.png', sizes: '180x180' },
+  },
   title: {
     default: `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`,
     template: `%s | ${SITE_CONFIG.name}`,
