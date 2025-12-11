@@ -102,7 +102,7 @@ export function AdBanner({
       : 'cursor-default',
     content.bg,
     content.text,
-    content.border === 'border-black' ? 'border-black' : 'border-gray-800',
+    content.border,
     className
   );
 
@@ -113,9 +113,10 @@ export function AdBanner({
         <div className="absolute inset-0 z-0">
           <Image
             src={content.image}
-            alt={content.title}
+            alt=""
             fill
             className="object-cover opacity-60 mix-blend-overlay"
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-black/40" />
         </div>

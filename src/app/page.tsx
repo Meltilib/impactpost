@@ -187,23 +187,23 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="md:w-1/2 grid grid-cols-2 gap-4">
-              <div className="relative h-64 border-4 border-brand-yellow rounded-xl overflow-hidden">
+            <div className="md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div className="relative h-56 sm:h-64 md:h-72 border-4 border-brand-yellow rounded-xl overflow-hidden">
                 <Image
                   src={YouthBoy}
                   alt="Youth spotlight"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 25vw"
                 />
               </div>
-              <div className="relative h-64 border-4 border-brand-teal rounded-xl overflow-hidden translate-y-8">
+              <div className="relative h-56 sm:h-64 md:h-72 border-4 border-brand-teal rounded-xl overflow-hidden sm:translate-y-8">
                 <Image
                   src={YouthGirl}
                   alt="Youth spotlight"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 50vw, 25vw"
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 25vw"
                 />
               </div>
             </div>
