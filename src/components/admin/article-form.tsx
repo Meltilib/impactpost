@@ -145,6 +145,41 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
     setTags(tags.filter(t => t !== tag));
   };
 
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+
+  const handleBroadcast = async () => {
+    if (!initialData.slug || !initialData.publishedAt) {
+      alert('Article must be published before sending to subscribers.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to send this article to ALL subscribers? This cannot be undone.')) {
+      return;
+    }
+
+    setIsBroadcasting(true);
+    try {
+      const res = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: initialData.slug })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Success! Queued emails for ${data.count} subscribers.`);
+      } else {
+        alert(data.error || 'Failed to send.');
+      }
+    } catch {
+      alert('Network error while broadcasting.');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+
+
   const handleSubmit = async (isDraft: boolean) => {
     if (!title || !excerpt || !categoryId || !authorId) {
       alert('Please fill in all required fields');
@@ -221,6 +256,17 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
           Back to Articles
         </Link>
         <div className="flex gap-2">
+          {mode === 'edit' && initialData.publishedAt && (
+            <button
+              type="button"
+              onClick={handleBroadcast}
+              disabled={isBroadcasting}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-yellow text-black font-bold border-2 border-black hover:bg-yellow-400 disabled:opacity-50 mr-2"
+            >
+              <Send size={18} />
+              {isBroadcasting ? 'Sending...' : 'Send to Subscribers'}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => handleSubmit(true)}
