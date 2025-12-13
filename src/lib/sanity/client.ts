@@ -8,21 +8,21 @@ export const isSanityEnabled = Boolean(useSanity);
 // Only create clients if Sanity is configured
 export const client: SanityClient | null = useSanity
   ? createClient({
-      projectId: projectId!,
-      dataset,
-      apiVersion: '2024-01-01',
-      useCdn: process.env.NODE_ENV === 'production',
-    })
+    projectId: projectId!,
+    dataset,
+    apiVersion: '2024-01-01',
+    useCdn: false,
+  })
   : null;
 
 export const previewClient: SanityClient | null = useSanity
   ? createClient({
-      projectId: projectId!,
-      dataset,
-      apiVersion: '2024-01-01',
-      useCdn: false,
-      token: process.env.SANITY_API_TOKEN,
-    })
+    projectId: projectId!,
+    dataset,
+    apiVersion: '2024-01-01',
+    useCdn: false,
+    token: process.env.SANITY_API_TOKEN,
+  })
   : null;
 
 export function getClient(preview = false): SanityClient | null {
