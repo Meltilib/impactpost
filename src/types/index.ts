@@ -20,15 +20,18 @@ export interface Story {
   readTime: string;
   isFeatured?: boolean;
   tags?: string[];
+  mediaType?: 'image' | 'video';
+  videoUrl?: string;
+  videoThumbnailUrl?: string;
 }
 
-export type Category = 
-  | 'Community Voices' 
-  | 'Youth' 
-  | 'Business' 
-  | 'Culture' 
-  | 'Wellness' 
-  | 'Issues' 
+export type Category =
+  | 'Community Voices'
+  | 'Youth'
+  | 'Business'
+  | 'Culture'
+  | 'Wellness'
+  | 'Issues'
   | 'Multimedia';
 
 export interface Event {

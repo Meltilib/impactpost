@@ -18,6 +18,10 @@ export interface ArticleFormData {
   publishedAt?: string;
   isDraft?: boolean;
   photoCredit?: string;
+  mediaType?: 'image' | 'video';
+  videoUrl?: string; // External URL
+  videoFileAssetId?: string; // Sanity File ID
+  videoThumbnailAssetId?: string;
 }
 
 export async function createArticle(data: ArticleFormData) {
@@ -41,15 +45,24 @@ export async function createArticle(data: ArticleFormData) {
       tags: data.tags,
       publishedAt: data.isDraft ? undefined : (data.publishedAt || new Date().toISOString()),
       isFeatured: data.placement === 'featured-hero',
+      mediaType: data.mediaType || 'image',
+      videoUrl: data.videoUrl, // External
+      videoFile: data.videoFileAssetId ? { // Internal
+        asset: { _type: 'reference', _ref: data.videoFileAssetId },
+      } : undefined,
+      videoThumbnail: data.videoThumbnailAssetId ? {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: data.videoThumbnailAssetId },
+      } : undefined,
     };
 
     const result = await writeClient.create(doc);
-    
+
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
     revalidatePath('/section');
-    
+
     return { success: true, id: result._id };
   } catch (error) {
     console.error('Error creating article:', error);
@@ -61,7 +74,7 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
   await requireAdminOrEditor();
   try {
     const updates: Record<string, unknown> = {};
-    
+
     if (data.title) updates.title = data.title;
     if (data.slug) updates.slug = { _type: 'slug', current: data.slug };
     if (data.excerpt) updates.excerpt = data.excerpt;
@@ -82,9 +95,22 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
     if (data.displayOrder !== undefined) updates.displayOrder = data.displayOrder;
     if (data.tags) updates.tags = data.tags;
     if (data.publishedAt) updates.publishedAt = data.publishedAt;
+    if (data.mediaType) updates.mediaType = data.mediaType;
+    if (data.videoUrl !== undefined) updates.videoUrl = data.videoUrl;
+    if (data.videoFileAssetId) {
+      updates.videoFile = {
+        asset: { _type: 'reference', _ref: data.videoFileAssetId },
+      };
+    }
+    if (data.videoThumbnailAssetId) {
+      updates.videoThumbnail = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: data.videoThumbnailAssetId },
+      };
+    }
 
     await writeClient.patch(id).set(updates).commit();
-    
+
     // Revalidate all relevant paths
     revalidatePath('/admin');
     revalidatePath('/');
@@ -96,7 +122,7 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
     }
     // Force revalidate category pages
     revalidatePath('/section/[category]', 'page');
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error updating article:', error);
@@ -108,12 +134,12 @@ export async function deleteArticle(id: string) {
   await requireAdminOrEditor();
   try {
     await writeClient.delete(id);
-    
+
     revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath('/news');
     revalidatePath('/section');
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error deleting article:', error);
@@ -324,9 +350,9 @@ export async function updateAuthor(id: string, payload: Partial<AuthorPayload>) 
     if (payload.imageAssetId !== undefined) {
       updates.image = payload.imageAssetId
         ? {
-            _type: 'image',
-            asset: { _type: 'reference', _ref: payload.imageAssetId },
-          }
+          _type: 'image',
+          asset: { _type: 'reference', _ref: payload.imageAssetId },
+        }
         : null;
     }
 

@@ -14,7 +14,22 @@ export interface SanityArticle {
   isFeatured?: boolean;
   tags?: string[];
   photoCredit?: string;
+  mediaType?: 'image' | 'video';
   mainImage?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+    alt?: string;
+  };
+  videoFile?: {
+    asset?: {
+      _id: string;
+      url: string;
+    };
+  };
+  videoUrl?: string;
+  videoThumbnail?: {
     asset?: {
       _id: string;
       url: string;
@@ -51,6 +66,19 @@ export interface SanityArticle {
   };
 }
 
+// Multimedia story type for homepage featured multimedia section
+export interface MultimediaStory {
+  id: string;
+  slug: string;
+  title: string;
+  mediaType: 'image' | 'video';
+  imageUrl: string;
+  videoUrl?: string;
+  thumbnailUrl: string;
+  categoryTitle: string;
+  categorySlug: string;
+}
+
 export interface SanityEvent {
   _id: string;
   title: string;
@@ -80,14 +108,14 @@ export interface SanityCategory {
 // Calculate read time from portable text blocks
 function calculateReadTime(body?: PortableTextBlock[]): string {
   if (!body) return '3 min read';
-  
+
   const text = body
-    .filter((block): block is PortableTextBlock & { children: { text: string }[] } => 
+    .filter((block): block is PortableTextBlock & { children: { text: string }[] } =>
       block._type === 'block' && Array.isArray(block.children)
     )
     .map((block) => block.children.map((child) => child.text || '').join(''))
     .join(' ');
-  
+
   const wordCount = text.split(/\s+/).filter(Boolean).length;
   const minutes = Math.ceil(wordCount / 200); // Average reading speed
   return `${minutes} min read`;
@@ -109,10 +137,10 @@ function formatEventDate(dateString: string): string {
   const date = new Date(dateString);
   const month = date.toLocaleDateString('en-CA', { month: 'short' });
   const day = date.getDate().toString().padStart(2, '0');
-  const time = date.toLocaleTimeString('en-CA', { 
-    hour: 'numeric', 
+  const time = date.toLocaleTimeString('en-CA', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true
   });
   return `${month} ${day}, ${time}`;
 }
@@ -126,7 +154,7 @@ export function mapSanityArticle(doc: SanityArticle): Story {
     excerpt: doc.excerpt || '',
     content: '', // Rich text is handled separately via Portable Text
     category: (doc.category?.title || 'Community Voices') as Category,
-    imageUrl: doc.mainImage?.asset?.url 
+    imageUrl: doc.mainImage?.asset?.url
       ? urlFor(doc.mainImage).width(800).height(600).url()
       : '/images/placeholder.jpg',
     photoCredit: doc.photoCredit || 'Impact Post',
@@ -166,4 +194,29 @@ export function mapSanityEvent(doc: SanityEvent): Event {
 // Map array of Sanity events to Event array
 export function mapSanityEvents(docs: SanityEvent[]): Event[] {
   return docs.map(mapSanityEvent);
+}
+
+// Map Sanity article to MultimediaStory for homepage multimedia section
+export function mapSanityMultimedia(doc: SanityArticle): MultimediaStory {
+  const isVideo = doc.mediaType === 'video';
+
+  // Determine video URL (file upload takes precedence over external URL)
+  const videoUrl = doc.videoFile?.asset?.url || doc.videoUrl || undefined;
+
+  // Thumbnail: use videoThumbnail for videos, mainImage for images
+  const thumbnailUrl = isVideo
+    ? (doc.videoThumbnail?.asset?.url || doc.mainImage?.asset?.url || '/images/multimedia-cover.jpg')
+    : (doc.mainImage?.asset?.url || '/images/multimedia-cover.jpg');
+
+  return {
+    id: doc._id,
+    slug: doc.slug,
+    title: doc.title,
+    mediaType: isVideo ? 'video' : 'image',
+    imageUrl: doc.mainImage?.asset?.url || '/images/multimedia-cover.jpg',
+    videoUrl,
+    thumbnailUrl,
+    categoryTitle: doc.category?.title || 'Documentary',
+    categorySlug: doc.category?.slug || 'multimedia',
+  };
 }

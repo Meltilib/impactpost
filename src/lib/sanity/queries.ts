@@ -347,6 +347,42 @@ export const categorySlugsQuery = groq`
   *[_type == "category" && defined(slug.current)][].slug.current
 `;
 
+// Fetch featured multimedia article
+export const featuredMultimediaQuery = groq`
+  *[_type == "article" && placement == "featured-multimedia" && defined(slug.current)] | order(displayOrder asc, publishedAt desc)[0] {
+    _id,
+    title,
+    "slug": slug.current,
+    mediaType,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    videoFile {
+      asset->{
+        _id,
+        url
+      }
+    },
+    videoUrl,
+    videoThumbnail {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    category->{
+      _id,
+      title,
+      "slug": slug.current
+    }
+  }
+`;
+
 // Fetch site settings (ticker)
 export const siteSettingsQuery = groq`
   *[_type == "siteSettings"][0]{

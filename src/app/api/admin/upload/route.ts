@@ -20,8 +20,11 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Determine asset type
+    const assetType = file.type.startsWith('image/') ? 'image' : 'file';
+
     // Upload to Sanity
-    const asset = await writeClient.assets.upload('image', buffer, {
+    const asset = await writeClient.assets.upload(assetType, buffer, {
       filename: file.name,
       contentType: file.type,
     });

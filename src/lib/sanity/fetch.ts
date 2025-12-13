@@ -11,15 +11,18 @@ import {
   categoryBySlugQuery,
   articleSlugsQuery,
   categorySlugsQuery,
+  featuredMultimediaQuery,
   siteSettingsQuery,
 } from './queries';
 import {
   mapSanityArticle,
   mapSanityArticles,
   mapSanityEvents,
+  mapSanityMultimedia,
   type SanityArticle,
   type SanityEvent,
   type SanityCategory,
+  type MultimediaStory,
 } from './mappers';
 import {
   FEATURED_STORY,
@@ -41,7 +44,7 @@ const DEFAULT_TICKER_ITEMS = [
 async function getClientForFetch() {
   // If no client is configured, return null
   if (!client) return null;
-  
+
   try {
     const draft = await draftMode();
     return draft.isEnabled ? previewClient : client;
@@ -53,7 +56,7 @@ async function getClientForFetch() {
 // Fetch featured article
 export async function fetchFeaturedStory(): Promise<Story> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const article: SanityArticle | null = await sanityClient.fetch(featuredArticleQuery);
@@ -67,7 +70,7 @@ export async function fetchFeaturedStory(): Promise<Story> {
   } else {
     logSanityFallback('featuredStory', 'client unavailable');
   }
-  
+
   // Fallback to static data
   return FEATURED_STORY;
 }
@@ -75,7 +78,7 @@ export async function fetchFeaturedStory(): Promise<Story> {
 // Fetch recent articles
 export async function fetchRecentStories(): Promise<Story[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const articles: SanityArticle[] = await sanityClient.fetch(recentArticlesQuery);
@@ -89,7 +92,7 @@ export async function fetchRecentStories(): Promise<Story[]> {
   } else {
     logSanityFallback('recentStories', 'client unavailable');
   }
-  
+
   // Fallback to static data
   return RECENT_STORIES;
 }
@@ -97,7 +100,7 @@ export async function fetchRecentStories(): Promise<Story[]> {
 // Fetch sidebar articles (Community Pulse section)
 export async function fetchSidebarStories(): Promise<Story[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const articles: SanityArticle[] = await sanityClient.fetch(sidebarArticlesQuery);
@@ -111,7 +114,7 @@ export async function fetchSidebarStories(): Promise<Story[]> {
   } else {
     logSanityFallback('sidebarStories', 'client unavailable');
   }
-  
+
   // Fallback to static data - use first 3 recent stories
   return RECENT_STORIES.slice(0, 3);
 }
@@ -119,7 +122,7 @@ export async function fetchSidebarStories(): Promise<Story[]> {
 // Fetch all articles
 export async function fetchAllStories(): Promise<Story[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const articles: SanityArticle[] = await sanityClient.fetch(articlesQuery);
@@ -133,7 +136,7 @@ export async function fetchAllStories(): Promise<Story[]> {
   } else {
     logSanityFallback('allStories', 'client unavailable');
   }
-  
+
   // Fallback to static data
   return getAllStories();
 }
@@ -141,7 +144,7 @@ export async function fetchAllStories(): Promise<Story[]> {
 // Fetch single article by slug
 export async function fetchStoryBySlug(slug: string): Promise<{ story: Story; body?: unknown } | null> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const article: SanityArticle | null = await sanityClient.fetch(
@@ -161,7 +164,7 @@ export async function fetchStoryBySlug(slug: string): Promise<{ story: Story; bo
   } else {
     logSanityFallback('storyBySlug', `client unavailable for slug ${slug}`);
   }
-  
+
   if (!sanityClient) {
     console.warn('[Sanity] Client not configured; falling back to static story data for slug:', slug);
   }
@@ -177,7 +180,7 @@ export async function fetchStoryBySlug(slug: string): Promise<{ story: Story; bo
 // Fetch articles by category
 export async function fetchStoriesByCategory(category: string): Promise<Story[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const articles: SanityArticle[] = await sanityClient.fetch(
@@ -194,7 +197,7 @@ export async function fetchStoriesByCategory(category: string): Promise<Story[]>
   } else {
     logSanityFallback('storiesByCategory', `client unavailable for ${category}`);
   }
-  
+
   // Fallback to static data
   return getStoriesByCategory(category);
 }
@@ -202,7 +205,7 @@ export async function fetchStoriesByCategory(category: string): Promise<Story[]>
 // Fetch category info
 export async function fetchCategoryBySlug(slug: string): Promise<SanityCategory | null> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const category: SanityCategory | null = await sanityClient.fetch(
@@ -217,14 +220,14 @@ export async function fetchCategoryBySlug(slug: string): Promise<SanityCategory 
   } else {
     logSanityFallback('categoryBySlug', `client unavailable for ${slug}`);
   }
-  
+
   return null;
 }
 
 // Fetch events
 export async function fetchEvents(): Promise<Event[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const events: SanityEvent[] = await sanityClient.fetch(eventsQuery);
@@ -238,15 +241,37 @@ export async function fetchEvents(): Promise<Event[]> {
   } else {
     logSanityFallback('events', 'client unavailable');
   }
-  
+
   // Fallback to static data
   return EVENTS;
+}
+
+// Fetch featured multimedia for homepage multimedia section
+export async function fetchFeaturedMultimedia(): Promise<MultimediaStory | null> {
+  const sanityClient = await getClientForFetch();
+
+  if (sanityClient) {
+    try {
+      const article: SanityArticle | null = await sanityClient.fetch(featuredMultimediaQuery);
+      if (article) {
+        return mapSanityMultimedia(article);
+      }
+    } catch (error) {
+      console.error('Error fetching featured multimedia from Sanity:', error);
+      logSanityFallback('featuredMultimedia', error);
+    }
+  } else {
+    logSanityFallback('featuredMultimedia', 'client unavailable');
+  }
+
+  // No fallback - return null if no featured multimedia exists
+  return null;
 }
 
 // Get all article slugs for static generation
 export async function fetchArticleSlugs(): Promise<string[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const slugs: string[] = await sanityClient.fetch(articleSlugsQuery);
@@ -260,7 +285,7 @@ export async function fetchArticleSlugs(): Promise<string[]> {
   } else {
     logSanityFallback('articleSlugs', 'client unavailable');
   }
-  
+
   // Fallback to static data
   return getAllStories().map(s => s.slug);
 }
@@ -268,7 +293,7 @@ export async function fetchArticleSlugs(): Promise<string[]> {
 // Get all category slugs for static generation
 export async function fetchCategorySlugs(): Promise<string[]> {
   const sanityClient = await getClientForFetch();
-  
+
   if (sanityClient) {
     try {
       const slugs: string[] = await sanityClient.fetch(categorySlugsQuery);
@@ -282,7 +307,7 @@ export async function fetchCategorySlugs(): Promise<string[]> {
   } else {
     logSanityFallback('categorySlugs', 'client unavailable');
   }
-  
+
   // Fallback to static categories
   return ['community-voices', 'youth', 'business', 'multimedia'];
 }
@@ -297,8 +322,8 @@ export async function fetchTickerItems(): Promise<{ items: string[]; isActive: b
       if (settings) {
         const items = Array.isArray(settings.tickerItems)
           ? settings.tickerItems
-              .map((item: { text?: string }) => item?.text)
-              .filter(Boolean)
+            .map((item: { text?: string }) => item?.text)
+            .filter(Boolean)
           : [];
 
         return {

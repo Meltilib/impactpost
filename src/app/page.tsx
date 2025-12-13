@@ -4,8 +4,9 @@ import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide
 import { ArticleCard } from '@/components/articles/article-card';
 import { AdBanner } from '@/components/ui/ad-banner';
 import { Button } from '@/components/ui/button';
+import { MultimediaPlayer } from '@/components/multimedia/multimedia-player';
 import { CONTENT_PILLARS } from '@/lib/constants';
-import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents } from '@/lib/sanity/fetch';
+import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents, fetchFeaturedMultimedia } from '@/lib/sanity/fetch';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
 import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
@@ -15,11 +16,12 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch data from Sanity (falls back to static data if Sanity not configured)
-  const [featuredStory, recentStories, sidebarStories, events] = await Promise.all([
+  const [featuredStory, recentStories, sidebarStories, events, featuredMultimedia] = await Promise.all([
     fetchFeaturedStory(),
     fetchRecentStories(),
     fetchSidebarStories(),
     fetchEvents(),
+    fetchFeaturedMultimedia(),
   ]);
   return (
     <div className="animate-in">
@@ -40,7 +42,7 @@ export default async function HomePage() {
           <div className="lg:col-span-8">
             <ArticleCard story={featuredStory} featured />
           </div>
-          
+
           {/* Sidebar / Top Picks */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="bg-brand-yellow p-6 border-2 border-black shadow-hard relative overflow-hidden">
@@ -68,13 +70,13 @@ export default async function HomePage() {
                 Get the latest on community events, businesses, and stories.
               </p>
               <form className="flex gap-2">
-                <input 
+                <input
                   type="email"
                   required
-                  className="w-full p-2 text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow bg-white" 
-                  placeholder="Email address" 
+                  className="w-full p-2 text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow bg-white"
+                  placeholder="Email address"
                 />
-                <button 
+                <button
                   type="submit"
                   className="bg-brand-coral border-2 border-white p-2 hover:bg-white hover:text-brand-coral transition-colors font-bold"
                   aria-label="Subscribe"
@@ -96,7 +98,7 @@ export default async function HomePage() {
           </p>
           <div className="h-1.5 bg-black mt-6 w-full" />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
           {recentStories.slice(0, recentStories.length > 4 ? 4 : recentStories.length).map(story => (
             <ArticleCard key={story.id} story={story} />
@@ -131,8 +133,8 @@ export default async function HomePage() {
               </span>
               <h2 className="font-heavy text-4xl md:text-5xl">Our Focus Areas</h2>
             </div>
-            <Link 
-              href="/news" 
+            <Link
+              href="/news"
               className="hidden md:flex items-center gap-2 font-bold hover:underline"
             >
               View All Categories <ArrowRight size={20} />
@@ -141,9 +143,9 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {CONTENT_PILLARS.map((pillar, idx) => (
-              <Link 
-                href={`/news/${pillar.slug}`} 
-                key={pillar.slug} 
+              <Link
+                href={`/news/${pillar.slug}`}
+                key={pillar.slug}
                 className="group cursor-pointer relative block"
               >
                 <div className={`h-48 border-2 border-black shadow-hard p-6 flex flex-col justify-between transition-all group-hover:-translate-y-2 group-hover:shadow-hard-lg ${pillar.color} ${pillar.textColor}`}>
@@ -214,7 +216,7 @@ export default async function HomePage() {
       {/* Multimedia & Events Grid */}
       <section className="py-16 container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
+
           {/* Multimedia */}
           <div className="lg:col-span-2">
             <div className="flex justify-between items-end mb-8">
@@ -223,26 +225,38 @@ export default async function HomePage() {
                 Watch & Listen
               </Link>
             </div>
-            <Link href="/section/multimedia" className="block relative group cursor-pointer">
-              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10 flex items-center justify-center">
-                <div className="bg-brand-coral text-white p-4 rounded-full shadow-hard transition-transform group-hover:scale-110">
-                  <Play size={32} fill="currentColor" />
+            {featuredMultimedia ? (
+              <MultimediaPlayer
+                mediaType={featuredMultimedia.mediaType}
+                thumbnailUrl={featuredMultimedia.thumbnailUrl}
+                videoUrl={featuredMultimedia.videoUrl}
+                title={featuredMultimedia.title}
+                categoryTitle={featuredMultimedia.categoryTitle}
+                slug={featuredMultimedia.slug}
+              />
+            ) : (
+              /* Fallback to static content */
+              <Link href="/section/multimedia" className="block relative group cursor-pointer">
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10 flex items-center justify-center">
+                  <div className="bg-brand-coral text-white p-4 rounded-full shadow-hard transition-transform group-hover:scale-110">
+                    <Play size={32} fill="currentColor" />
+                  </div>
                 </div>
-              </div>
-              <div className="relative w-full h-[400px] border-2 border-black shadow-hard overflow-hidden">
-                <Image
-                  src={MultimediaCover}
-                  alt="Video cover"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                />
-              </div>
-              <div className="absolute bottom-0 left-0 bg-white border-t-2 border-r-2 border-black p-4 max-w-md z-20">
-                <span className="text-brand-coral font-bold uppercase text-xs mb-1 block">Documentary</span>
-                <h3 className="font-bold text-xl">The Somalis of Yellowknife</h3>
-              </div>
-            </Link>
+                <div className="relative w-full h-[400px] border-2 border-black shadow-hard overflow-hidden">
+                  <Image
+                    src={MultimediaCover}
+                    alt="Video cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 66vw"
+                  />
+                </div>
+                <div className="absolute bottom-0 left-0 bg-white border-t-2 border-r-2 border-black p-4 max-w-md z-20">
+                  <span className="text-brand-coral font-bold uppercase text-xs mb-1 block">Documentary</span>
+                  <h3 className="font-bold text-xl">The Somalis of Yellowknife</h3>
+                </div>
+              </Link>
+            )}
           </div>
 
           {/* Events Sidebar */}
@@ -254,8 +268,8 @@ export default async function HomePage() {
               </div>
               <div className="divide-y-2 divide-black">
                 {events.map(event => (
-                  <div 
-                    key={event.id} 
+                  <div
+                    key={event.id}
                     className="p-4 hover:bg-brand-yellow/10 transition-colors group cursor-pointer"
                   >
                     <div className="flex items-start gap-4">

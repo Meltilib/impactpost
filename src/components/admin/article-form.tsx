@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RichEditor } from './rich-editor';
 import { ImageUpload } from './image-upload';
+import { VideoUpload } from './video-upload';
 import { createArticle, updateArticle } from '@/lib/admin/actions';
 import { convertPortableTextToTiptapDoc, convertTiptapToPortableText } from '@/lib/admin/portable-text-converter';
+import { generateSlug } from '@/lib/utils';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,16 +42,13 @@ interface ArticleFormProps {
     tags?: string[];
     publishedAt?: string;
     photoCredit?: string;
+    mediaType?: 'image' | 'video';
+    videoUrl?: string; // External
+    videoFileAssetId?: string; // Internal File
+    videoFileUrl?: string; // Internal File URL
+    videoThumbnailAssetId?: string;
+    videoThumbnailUrl?: string;
   };
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
 }
 
 function hasPortableTextContent(blocks: unknown): blocks is unknown[] {
@@ -88,6 +87,12 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
   const [tagInput, setTagInput] = useState('');
   const [photoCredit, setPhotoCredit] = useState(initialData.photoCredit || 'Impact Post');
+  const [mediaType, setMediaType] = useState<'image' | 'video'>(initialData.mediaType || 'image');
+  const [videoUrl, setVideoUrl] = useState(initialData.videoUrl || '');
+  const [videoFileAssetId, setVideoFileAssetId] = useState(initialData.videoFileAssetId || '');
+  const [videoFileUrl, setVideoFileUrl] = useState(initialData.videoFileUrl || '');
+  const [videoThumbnailAssetId, setVideoThumbnailAssetId] = useState(initialData.videoThumbnailAssetId || '');
+  const [videoThumbnailUrl, setVideoThumbnailUrl] = useState(initialData.videoThumbnailUrl || '');
   const [publishedAt, setPublishedAt] = useState(() => {
     const value = initialData.publishedAt || new Date().toISOString();
     const date = new Date(value);
@@ -98,7 +103,7 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
   // Auto-generate slug from title
   useEffect(() => {
     if (mode === 'create' && title && !initialData.slug) {
-      setSlug(slugify(title));
+      setSlug(generateSlug(title));
     }
   }, [title, mode, initialData.slug]);
 
@@ -107,15 +112,15 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
   const handleImageUpload = async (file: File): Promise<{ assetId: string; url: string } | null> => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     try {
       const response = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) throw new Error('Upload failed');
-      
+
       const data = await response.json();
       return { assetId: data.assetId, url: data.url };
     } catch (error) {
@@ -174,6 +179,10 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
         isDraft,
         publishedAt: isDraft || !publishedAt ? undefined : new Date(publishedAt).toISOString(),
         photoCredit,
+        mediaType,
+        videoUrl: mediaType === 'video' ? videoUrl : undefined,
+        videoFileAssetId: mediaType === 'video' ? (videoFileAssetId || undefined) : undefined,
+        videoThumbnailAssetId: mediaType === 'video' ? (videoThumbnailAssetId || undefined) : undefined,
       };
 
       let result;
@@ -304,18 +313,105 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
           </div>
         </div>
 
-        {/* Hero Image */}
+        {/* Media Type */}
         <div>
-          <label className="block font-bold mb-2">Hero Image</label>
-          <ImageUpload
-            value={imageUrl}
-            onChange={(assetId, url) => {
-              setImageAssetId(assetId || '');
-              setImageUrl(url || '');
-            }}
-            onUpload={handleImageUpload}
-          />
+          <label className="block font-bold mb-2">Media Type</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="mediaType"
+                value="image"
+                checked={mediaType === 'image'}
+                onChange={() => setMediaType('image')}
+                className="w-5 h-5 accent-brand-purple"
+              />
+              <span className="font-bold">Image</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="mediaType"
+                value="video"
+                checked={mediaType === 'video'}
+                onChange={() => setMediaType('video')}
+                className="w-5 h-5 accent-brand-purple"
+              />
+              <span className="font-bold">Video</span>
+            </label>
+          </div>
         </div>
+
+        {/* Hero Image (only if Image selected) */}
+        {mediaType === 'image' && (
+          <div>
+            <label className="block font-bold mb-2">Hero Image</label>
+            <ImageUpload
+              value={imageUrl}
+              onChange={(assetId, url) => {
+                setImageAssetId(assetId || '');
+                setImageUrl(url || '');
+              }}
+              onBlur={() => {
+                if (mode === 'create' && !slug && title) {
+                  setSlug(generateSlug(title));
+                }
+              }} onUpload={handleImageUpload}
+            />
+          </div>
+        )}
+
+        {/* Video Fields (only if Video selected) */}
+        {mediaType === 'video' && (
+          <div className="space-y-6 border-2 border-brand-purple p-6 bg-purple-50">
+            <h3 className="font-bold text-lg text-brand-purple mb-4">Video Settings</h3>
+
+            {/* Direct Video File Upload */}
+            <div>
+              <label className="block font-bold mb-2">Upload Video File</label>
+              <VideoUpload
+                value={videoFileUrl}
+                onChange={(assetId, url) => {
+                  setVideoFileAssetId(assetId || '');
+                  setVideoFileUrl(url || '');
+                  // Clear external URL if file is uploaded to avoid confusion, or keep both? 
+                  // Let's keep it simple: file takes precedence in display logic, but let user manage inputs.
+                }}
+                onUpload={handleImageUpload} // Reuse the same upload handler as it wraps the API that now handles videos
+              />
+              <p className="text-sm text-gray-500 mt-1">Direct upload (Max 50MB). For larger videos, use external URL below.</p>
+            </div>
+
+            <div className="text-center font-bold text-gray-400">- OR -</div>
+
+            {/* External Video URL */}
+            <div>
+              <label className="block font-bold mb-2">External Video URL</label>
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              <p className="text-sm text-gray-500 mt-1">YouTube or Vimeo URL.</p>
+            </div>
+
+            {/* Video Thumbnail (Required) */}
+            <div>
+              <label className="block font-bold mb-2">Video Thumbnail *</label>
+              <ImageUpload
+                value={videoThumbnailUrl}
+                onChange={(assetId, url) => {
+                  setVideoThumbnailAssetId(assetId || '');
+                  setVideoThumbnailUrl(url || '');
+                }}
+                onUpload={handleImageUpload}
+              />
+              <p className="text-sm text-gray-500 mt-1">Image shown before video plays.</p>
+            </div>
+          </div>
+        )}
 
         {/* Photo Credit */}
         <div>
@@ -357,6 +453,7 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
                 <option value="grid">Grid (Latest Stories)</option>
                 <option value="featured-hero">Featured Hero</option>
                 <option value="sidebar">Sidebar (Community Pulse)</option>
+                <option value="featured-multimedia">Featured Multimedia</option>
                 <option value="hidden">Hidden</option>
               </select>
             </div>
