@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { Clock, Twitter, Facebook, Linkedin, Bookmark } from 'lucide-react';
+import { Clock, Twitter, Facebook, Linkedin } from 'lucide-react';
 import { fetchStoryBySlug, fetchRecentStories, fetchArticleSlugs } from '@/lib/sanity/fetch';
 import { ArticleCard } from '@/components/articles/article-card';
+import { BookmarkButton } from '@/components/articles/bookmark-button';
 import { ArticleBody } from '@/components/portable-text';
 import { Button } from '@/components/ui/button';
 import { SITE_CONFIG } from '@/lib/constants';
@@ -201,12 +202,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <Linkedin size={18} />
               </a>
               <div className="w-full h-px bg-gray-300 my-2 hidden lg:block" />
-              <button
-                className="w-10 h-10 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-hard-sm hover:translate-x-1 hover:shadow-none transition-all"
-                aria-label="Bookmark article"
-              >
-                <Bookmark size={18} />
-              </button>
+              <BookmarkButton slug={story.slug} />
             </div>
           </aside>
 

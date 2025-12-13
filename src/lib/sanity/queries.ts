@@ -253,6 +253,46 @@ export const articlesByCategoryQuery = groq`
   }
 `;
 
+// Fetch articles for Community section (aggregating Culture/Community Voices)
+export const communitySectionQuery = groq`
+  *[_type == "article" && category->slug.current in ["community", "community-voices", "voices"] && defined(slug.current)] | order(publishedAt desc) {
+    _id,
+    title,
+    subtitle,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    isFeatured,
+    tags,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    photoCredit,
+    author->{
+      _id,
+      name,
+      role,
+      image {
+        asset->{
+          _id,
+          url
+        }
+      }
+    },
+    category->{
+      _id,
+      title,
+      "slug": slug.current,
+      color,
+      textColor
+    }
+  }
+`;
+
 // Fetch all categories
 export const categoriesQuery = groq`
   *[_type == "category"] | order(title asc) {

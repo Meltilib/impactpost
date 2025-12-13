@@ -13,6 +13,7 @@ import {
   categorySlugsQuery,
   featuredMultimediaQuery,
   siteSettingsQuery,
+  communitySectionQuery,
 } from './queries';
 import {
   mapSanityArticle,
@@ -183,10 +184,17 @@ export async function fetchStoriesByCategory(category: string): Promise<Story[]>
 
   if (sanityClient) {
     try {
-      const articles: SanityArticle[] = await sanityClient.fetch(
-        articlesByCategoryQuery,
-        { category }
-      );
+      let articles: SanityArticle[] = [];
+
+      if (category === 'community') {
+        articles = await sanityClient.fetch(communitySectionQuery);
+      } else {
+        articles = await sanityClient.fetch(
+          articlesByCategoryQuery,
+          { category }
+        );
+      }
+
       if (articles && articles.length > 0) {
         return mapSanityArticles(articles);
       }
