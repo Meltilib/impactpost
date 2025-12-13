@@ -263,7 +263,7 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
             <input
               type="text"
               value={slug}
-              onChange={(e) => setSlug(slugify(e.target.value))}
+              onChange={(e) => setSlug(generateSlug(e.target.value))}
               className="flex-1 p-3 focus:outline-none"
               placeholder="article-slug"
             />
@@ -352,11 +352,7 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
                 setImageAssetId(assetId || '');
                 setImageUrl(url || '');
               }}
-              onBlur={() => {
-                if (mode === 'create' && !slug && title) {
-                  setSlug(generateSlug(title));
-                }
-              }} onUpload={handleImageUpload}
+              onUpload={handleImageUpload}
             />
           </div>
         )}
