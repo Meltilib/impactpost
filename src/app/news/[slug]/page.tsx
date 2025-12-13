@@ -125,7 +125,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   return (
     <>
       <ArticleJsonLd story={story} />
-      
+
       <article className="animate-in">
         {/* Article Header */}
         <header className="bg-brand-light border-b-2 border-black pt-12 pb-8">
@@ -169,7 +169,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         {/* Main Content Area */}
         <div className="container mx-auto px-4 py-12 max-w-6xl flex flex-col lg:flex-row gap-12">
-          
+
           {/* Social Sidebar (Sticky) */}
           <aside className="lg:w-24 flex-shrink-0">
             <div className="sticky top-24 flex lg:flex-col gap-4 justify-center lg:justify-start">
@@ -201,7 +201,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <Linkedin size={18} />
               </a>
               <div className="w-full h-px bg-gray-300 my-2 hidden lg:block" />
-              <button 
+              <button
                 className="w-10 h-10 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-hard-sm hover:translate-x-1 hover:shadow-none transition-all"
                 aria-label="Bookmark article"
               >
@@ -276,8 +276,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <div className="mt-12 pt-8 border-t-2 border-black flex flex-wrap gap-2">
                 <span className="font-bold mr-2 my-auto">Tags:</span>
                 {story.tags.map(tag => (
-                  <span 
-                    key={tag} 
+                  <span
+                    key={tag}
                     className="px-3 py-1 bg-gray-100 border border-black rounded-full text-sm hover:bg-brand-yellow cursor-pointer transition-colors"
                   >
                     #{tag}
@@ -300,13 +300,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <div className="text-center md:text-left">
                 <h3 className="font-bold text-xl mb-2">About {story.author.name}</h3>
                 <p className="text-gray-600 mb-4">
-                  {story.author.role}. Senior Reporter covering equity, housing, and food justice. Previously wrote for The City Chronicle.
+                  {story.author.bio || `${story.author.role}. Contributing writer for Impact Post.`}
                 </p>
                 <Button size="sm" variant="outline">View all articles</Button>
               </div>
             </div>
           </div>
         </div>
+
 
         {/* Read Next Section */}
         <section className="bg-gray-100 py-16 border-t-2 border-black">
@@ -319,7 +320,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </div>
         </section>
-      </article>
+      </article >
     </>
   );
 }
