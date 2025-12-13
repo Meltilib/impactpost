@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { SITE_CONFIG } from '@/lib/constants';
+import { NewsletterForm } from '@/components/newsletter-form';
 
 export function Footer() {
   return (
     <footer className="bg-black text-white pt-16 pb-8 border-t-4 border-brand-purple">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-          
+
           <div className="md:col-span-4">
             <h2 className="font-heavy text-4xl mb-6 italic">
               IMPACT<span className="text-brand-coral">POST</span>
@@ -58,25 +59,8 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="md:col-span-4 bg-brand-purple p-6 border-2 border-white shadow-[8px_8px_0px_white]">
-            <h4 className="font-heavy text-2xl mb-2">Subscribe to the Newsletter</h4>
-            <p className="text-white/80 mb-4">
-              Stay connected with your community. Weekly updates on events, news, and opportunities.
-            </p>
-            <form className="flex gap-2">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                required
-                className="flex-grow px-4 py-2 bg-white text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow"
-              />
-              <button 
-                type="submit"
-                className="bg-black text-white px-4 font-bold border-2 border-black hover:bg-brand-yellow hover:text-black transition-colors"
-              >
-                GO
-              </button>
-            </form>
+          <div className="md:col-span-4">
+            <NewsletterForm />
           </div>
 
         </div>

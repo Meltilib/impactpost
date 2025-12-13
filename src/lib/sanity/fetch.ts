@@ -14,6 +14,7 @@ import {
   featuredMultimediaQuery,
   siteSettingsQuery,
   communitySectionQuery,
+  articlesBySlugsQuery,
 } from './queries';
 import {
   mapSanityArticle,
@@ -296,6 +297,32 @@ export async function fetchArticleSlugs(): Promise<string[]> {
 
   // Fallback to static data
   return getAllStories().map(s => s.slug);
+}
+
+// Fetch articles by slugs (for bookmarks)
+export async function fetchArticlesBySlugs(slugs: string[]): Promise<Story[]> {
+  if (!slugs || slugs.length === 0) return [];
+
+  const sanityClient = await getClientForFetch();
+
+  if (sanityClient) {
+    try {
+      const articles: SanityArticle[] = await sanityClient.fetch(
+        articlesBySlugsQuery,
+        { slugs }
+      );
+      if (articles && articles.length > 0) {
+        return mapSanityArticles(articles);
+      }
+    } catch (error) {
+      console.error('Error fetching bookmarked articles from Sanity:', error);
+      logSanityFallback('articlesBySlugs', error);
+    }
+  } else {
+    logSanityFallback('articlesBySlugs', 'client unavailable');
+  }
+
+  return [];
 }
 
 // Get all category slugs for static generation
