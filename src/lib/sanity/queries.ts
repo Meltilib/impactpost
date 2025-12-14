@@ -162,6 +162,39 @@ export const recentArticlesQuery = groq`
   }
 `;
 
+// Fetch articles by slugs (for bookmarks)
+export const articlesBySlugsQuery = groq`
+  *[_type == "article" && slug.current in $slugs] | order(publishedAt desc) {
+    _id,
+    title,
+    subtitle,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    isFeatured,
+    tags,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      _id,
+      name,
+      role
+    },
+    category->{
+      _id,
+      title,
+      "slug": slug.current,
+      color,
+      textColor
+    }
+  }
+`;
+
 // Fetch single article by slug
 export const articleBySlugQuery = groq`
   *[_type == "article" && slug.current == $slug][0] {
