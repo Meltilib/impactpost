@@ -29,6 +29,10 @@ export function NewsletterForm() {
                 throw new Error(data.error || 'Something went wrong');
             }
 
+            if (data.isDuplicate) {
+                setErrorMessage('duplicate'); // Use this as a flag in success state
+            }
+
             setStatus('success');
             setEmail('');
         } catch (error: unknown) {
@@ -45,9 +49,13 @@ export function NewsletterForm() {
                         <CheckCircle size={28} />
                     </div>
                     <div>
-                        <h4 className="text-2xl font-heavy italic text-white mb-2">YOU&apos;RE IN!</h4>
+                        <h4 className="text-2xl font-heavy italic text-white mb-2">
+                            {errorMessage === 'duplicate' ? 'WELCOME BACK!' : "YOU'RE IN!"}
+                        </h4>
                         <p className="text-white/90 font-medium">
-                            Thanks for subscribing. Welcome to the community.
+                            {errorMessage === 'duplicate'
+                                ? "You're already on the list. Good to see you again!"
+                                : "Thanks for subscribing. Welcome to the community."}
                         </p>
                     </div>
                     <button

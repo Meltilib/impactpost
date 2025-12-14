@@ -38,11 +38,12 @@ export async function POST(req: Request) {
 
                 if (!res.ok) {
                     const errorData = await res.json();
-                    // Handle "Already exists" gracefully
-                    if (res.status !== 409) {
-                        console.error('Resend API Error:', errorData);
-                        return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 });
+                    // Handle "Already exists" - Return success but with a specific flag
+                    if (res.status === 409) {
+                        return NextResponse.json({ success: true, message: 'You are already subscribed!', isDuplicate: true });
                     }
+                    console.error('Resend API Error:', errorData);
+                    return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 });
                 }
             } else {
                 // Fallback if no audience ID (mostly for testing/logging if configured incorrectly)
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
         } else {
             // Mock success for dev without keys
             console.log(`[Dev Mode] Would add ${email} to Resend.`);
+            // Simulate duplicate for testing if email is specific (optional, but let's keep it simple)
         }
 
         return NextResponse.json({ success: true, message: 'Thank you for subscribing!' });
