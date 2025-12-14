@@ -39,20 +39,24 @@ export function NewsletterForm() {
 
     if (status === 'success') {
         return (
-            <div className="bg-white/10 p-6 border-2 border-brand-teal rounded-lg animate-in fade-in">
-                <div className="flex items-center gap-3 text-brand-yellow mb-2">
-                    <CheckCircle size={24} />
-                    <h4 className="text-xl font-heavy italic">YOU&apos;RE IN!</h4>
+            <div className="bg-brand-purple p-6 border-2 border-white shadow-[8px_8px_0px_white] animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex flex-col items-center text-center gap-3 py-4">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-purple mb-2">
+                        <CheckCircle size={28} />
+                    </div>
+                    <div>
+                        <h4 className="text-2xl font-heavy italic text-white mb-2">YOU&apos;RE IN!</h4>
+                        <p className="text-white/90 font-medium">
+                            Thanks for subscribing. Welcome to the community.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setStatus('idle')}
+                        className="text-xs text-white/60 hover:text-white mt-4 underline decoration-dashed"
+                    >
+                        Subscribe another email
+                    </button>
                 </div>
-                <p className="text-white/90">
-                    Thanks for subscribing. Welcome to the community.
-                </p>
-                <button
-                    onClick={() => setStatus('idle')}
-                    className="text-sm text-gray-400 hover:text-white mt-4 underline decoration-dashed"
-                >
-                    Add another email
-                </button>
             </div>
         );
     }

@@ -18,7 +18,7 @@ function BookmarkHeaderAction() {
     <Link href="/saved" className="relative group p-2 hover:bg-gray-100 rounded-full transition-colors">
       <BookOpen size={20} className="group-hover:text-brand-purple transition-colors" />
       {bookmarks.length > 0 && (
-        <span className="absolute -top-1 -right-1 bg-brand-coral text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in">
+        <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-in zoom-in border border-black">
           {bookmarks.length}
         </span>
       )}
