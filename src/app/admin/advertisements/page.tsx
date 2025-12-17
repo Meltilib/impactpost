@@ -45,7 +45,7 @@ export default async function AdvertisementsPage() {
                     className="flex items-center gap-2 bg-brand-purple text-white px-4 py-2 font-bold hover:bg-brand-purple/90 transition-colors border-2 border-black shadow-hard"
                 >
                     <Plus size={20} />
-                    New Campaign
+                    New Advertisement
                 </Link>
             </div>
 
@@ -65,7 +65,7 @@ export default async function AdvertisementsPage() {
                     <table className="w-full">
                         <thead className="bg-gray-100 border-b-2 border-black">
                             <tr>
-                                <th className="text-left p-4 font-bold">Campaign</th>
+                                <th className="text-left p-4 font-bold">Ad Title</th>
                                 <th className="text-left p-4 font-bold">Client</th>
                                 <th className="text-left p-4 font-bold">Dates</th>
                                 <th className="text-left p-4 font-bold">Revenue</th>

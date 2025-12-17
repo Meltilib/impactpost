@@ -32,13 +32,14 @@ export default async function EditAdvertisementPage({ params }: PageProps) {
         imageUrl: advertisement.image?.asset?.url,
         destinationUrl: advertisement.destinationUrl,
         disclosureText: advertisement.disclosureText,
+        linkedArticles: advertisement.linkedArticles,
     };
 
     return (
         <div>
             <div className="bg-brand-dark text-white p-8">
                 <h1 className="font-heavy text-3xl">Edit Advertisement</h1>
-                <p className="text-white/70">Update campaign details</p>
+                <p className="text-white/70">Update advertisement details</p>
             </div>
             <AdvertisementForm mode="edit" initialData={initialData} />
         </div>

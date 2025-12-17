@@ -171,7 +171,7 @@ export function AdvertisementForm({ mode, initialData = {} }: AdvertisementFormP
                     className="flex items-center gap-2 px-4 py-2 bg-brand-purple text-white font-bold border-2 border-black shadow-hard hover:shadow-none hover:translate-x-1 hover:translate-y-1 disabled:opacity-50"
                 >
                     <Save size={18} />
-                    Save Campaign
+                    Save Advertisement
                 </button>
             </div>
 
@@ -179,7 +179,7 @@ export function AdvertisementForm({ mode, initialData = {} }: AdvertisementFormP
                 {/* Campaign Info */}
                 <div className="grid grid-cols-2 gap-6">
                     <div>
-                        <label className="block font-bold mb-2">Campaign Title *</label>
+                        <label className="block font-bold mb-2">Advertisement Title *</label>
                         <input
                             type="text"
                             value={title}
@@ -284,7 +284,7 @@ export function AdvertisementForm({ mode, initialData = {} }: AdvertisementFormP
                     <div className="flex justify-between items-center mb-6">
                         <div>
                             <h3 className="font-heavy text-xl">Sponsored Articles</h3>
-                            <p className="text-gray-500 text-sm">Articles linked to this campaign for tracking.</p>
+                            <p className="text-gray-500 text-sm">Articles linked to this advertisement for tracking.</p>
                         </div>
                         <Link href={`/admin/new?sponsorId=${initialData._id}`}>
                             <button className="flex items-center gap-2 px-3 py-1.5 bg-brand-teal text-white font-bold border-2 border-black shadow-hard-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none text-sm">
