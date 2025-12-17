@@ -70,16 +70,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_CONFIG.name}`,
   },
   description: SITE_CONFIG.description,
-  keywords: [
-    'community news',
-    'equity journalism',
-    'diaspora media',
-    'Canadian news',
-    'diversity',
-    'inclusion',
-    'youth leadership',
-    'community voices',
-  ],
+  keywords: SITE_CONFIG.keywords,
   authors: [{ name: SITE_CONFIG.name }],
   creator: SITE_CONFIG.name,
   publisher: SITE_CONFIG.name,
@@ -122,9 +113,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
 };
 
 export default function RootLayout({
@@ -142,6 +130,44 @@ export default function RootLayout({
       className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'NewsMediaOrganization',
+              name: SITE_CONFIG.name,
+              alternateName: 'Impact Post Canada',
+              description: SITE_CONFIG.description,
+              url: SITE_CONFIG.url,
+              logo: {
+                '@type': 'ImageObject',
+                url: `${SITE_CONFIG.url}/icon.png`,
+                width: 512,
+                height: 512,
+              },
+              areaServed: {
+                '@type': 'Country',
+                name: 'Canada',
+              },
+              audience: {
+                '@type': 'Audience',
+                audienceType: 'Canadian-Somali diaspora',
+              },
+              sameAs: [
+                `https://twitter.com/${SITE_CONFIG.twitterHandle.replace('@', '')}`,
+                // Add other social profiles here as they become available
+              ],
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: 'contact@impactpost.ca',
+                contactType: 'customer support',
+              },
+            }),
+          }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col bg-brand-light font-sans antialiased selection:bg-brand-purple selection:text-white">
         <a
           href="#main-content"

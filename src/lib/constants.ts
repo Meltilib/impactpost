@@ -2,11 +2,38 @@ import { NavItem, SectionInfo } from '@/types';
 
 export const SITE_CONFIG = {
   name: 'IMPACT POST',
-  tagline: 'Voices of Strength. Stories of Impact.',
-  description: 'Amplifying the voices, stories, and achievements of equity-deserving communities through independent journalism.',
+  tagline: 'Canadian-Somali News & Perspectives',
+  description: 'Leading voice of the Canadian-Somali diaspora. Independent news, youth stories, and community perspectives from Toronto to Vancouver. Stay informed.',
   url: 'https://impactpost.ca',
   twitterHandle: '@impactpost',
   locale: 'en_CA',
+  keywords: [
+    // Primary niche keywords (highest priority)
+    'Canadian Somali news',
+    'Somali diaspora Canada',
+    'Canadian-Somali community',
+
+    // Geographic keywords (city-specific)
+    'Toronto Somali community',
+    'Edmonton Somali news',
+    'Ottawa Somali diaspora',
+    'Vancouver Somali community',
+
+    // Topic-specific keywords
+    'Somali youth Canada',
+    'Somali Canadian business',
+    'diaspora journalism',
+
+    // Broader keywords (secondary)
+    'independent journalism Canada',
+    'community news Canada',
+    'multicultural news',
+    'Canadian diversity news',
+
+    // Brand
+    'Impact Post',
+    'ImpactPost.ca',
+  ],
 };
 
 export const NAV_ITEMS: NavItem[] = [
