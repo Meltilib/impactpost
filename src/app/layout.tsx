@@ -137,10 +137,14 @@ export default function RootLayout({
   }
 
   return (
-    <html lang="en" className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen flex flex-col bg-brand-light font-sans antialiased selection:bg-brand-purple selection:text-white">
-        <a 
-          href="#main-content" 
+        <a
+          href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-black focus:text-white focus:px-4 focus:py-2"
         >
           Skip to main content

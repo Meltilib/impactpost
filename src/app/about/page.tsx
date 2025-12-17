@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 const teamMembers = [
   { name: 'Said Dirie', role: 'Editor-in-Chief', img: '/images/1-Said.jpeg', email: 'SDirie@impactpost.ca' },
   { name: 'Mohamed Eltilib', role: 'Technical Director', img: '/images/2-tilib.jpg', email: 'MEltilib@impactpost.ca' },
-  { name: 'Simon Shirley', role: 'Director of Photography', img: '/images/avatar-3.jpg', email: 'SShirley@impactpost.ca' },
-  { name: 'Zakarie Dirie', role: 'Head of Marketing', img: '/images/avatar-5.jpg', email: 'ZDirie@impactpost.ca' },
+  { name: 'Simon Shirley', role: 'Director of Photography', img: '/images/3-Simon.jpg', email: 'SShirley@impactpost.ca', imagePos: 'object-top' },
+  { name: 'Zakarie Dirie', role: 'Head of Marketing', img: '/images/avatar-2.jpg', email: 'ZDirie@impactpost.ca' },
 ];
 
 const missionPoints = [
@@ -114,7 +114,7 @@ export default function AboutPage() {
                       src={member.img}
                       alt={member.name}
                       fill
-                      className="object-cover"
+                      className={`object-cover ${member.imagePos || ''}`}
                       sizes="96px"
                     />
                   </div>
