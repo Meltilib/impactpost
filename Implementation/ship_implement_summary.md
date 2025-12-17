@@ -264,3 +264,31 @@
    - **Direct Broadcast**: Editors can blast newsletters right from the CMS.
    - **Data Freedom**: CSV Export for subscriber lists.
 
+---
+
+🚀 #08 2025-12-16 | Advertisement Tracking Admin | ✅ 90m | 🔧engineering | ✨features | 📁12f
+   • Implemented full advertisement lifecycle management (create, read, update, delete) in Admin Portal.
+   • Integrated "Sponsored Content" tagging in article editor with active campaign linking.
+   • Updated Sanity schema to support Advertisement document type and Article sponsorship fields.
+   • Added dedicated Advertisement dashboard with revenue and status tracking.
+
+   📁 **Files Created** (4):
+   - sanity/schemaTypes/advertisement.ts - Advertisement document schema
+   - src/app/admin/advertisements/page.tsx - Campaign list dashboard
+   - src/app/admin/advertisements/new/page.tsx - New campaign page
+   - src/app/admin/advertisements/edit/[id]/page.tsx - Edit campaign page
+   - src/components/admin/advertisement-form.tsx - Reusable campaign form
+
+   📁 **Files Modified** (5):
+   - sanity/schemaTypes/article.ts - Added isSponsored field
+   - sanity/schemaTypes/index.ts - Registered advertisement schema
+   - src/lib/admin/actions.ts - Added Advertisement CRUD & updated Article actions
+   - src/app/admin/layout.tsx - Added Advertisements nav link
+   - src/components/admin/article-form.tsx - Added sponsorship UI controls
+
+   ⚙️ **Key Features**:
+   - **Campaign Management**: Track revenue, dates, and creatives for ad campaigns.
+   - **Sponsorship Linkage**: Directly associate articles with paid campaigns.
+   - **Visual Dashboard**: At-a-glance view of active, scheduled, and expired ads.
+
+

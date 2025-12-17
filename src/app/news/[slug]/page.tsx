@@ -1,8 +1,10 @@
+
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Clock, Twitter, Facebook, Linkedin } from 'lucide-react';
-import { fetchStoryBySlug, fetchRecentStories, fetchArticleSlugs } from '@/lib/sanity/fetch';
+import { fetchStoryBySlug, fetchActiveAd, fetchArticleSlugs, fetchRecentStories } from '@/lib/sanity/fetch';
+import { AdUnit } from '@/components/ad-unit';
 import { ArticleCard } from '@/components/articles/article-card';
 import { BookmarkButton } from '@/components/articles/bookmark-button';
 import { ArticleBody } from '@/components/portable-text';
@@ -35,9 +37,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const result = await fetchStoryBySlug(slug);
-  const story = result?.story;
+  const data = await fetchStoryBySlug(slug);
 
+  if (!data) {
+    notFound();
+  }
+  const story = data.story;
   if (!story) {
     return {
       title: 'Article Not Found',
@@ -110,9 +115,10 @@ function ArticleJsonLd({ story }: { story: Story }) {
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const [result, recentStories] = await Promise.all([
+  const [result, recentStories, footerAd] = await Promise.all([
     fetchStoryBySlug(slug),
     fetchRecentStories(),
+    fetchActiveAd('article_footer'),
   ]);
 
   if (!result) {
@@ -304,6 +310,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
         </div>
 
+        {footerAd && <AdUnit ad={footerAd} placement="article_footer" />}
 
         {/* Read Next Section */}
         <section className="bg-gray-100 py-16 border-t-2 border-black">

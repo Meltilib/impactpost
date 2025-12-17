@@ -15,6 +15,7 @@ import {
   siteSettingsQuery,
   communitySectionQuery,
   articlesBySlugsQuery,
+  activeAdQuery,
 } from './queries';
 import {
   mapSanityArticle,
@@ -375,4 +376,26 @@ export async function fetchTickerItems(): Promise<{ items: string[]; isActive: b
   }
 
   return { items: DEFAULT_TICKER_ITEMS, isActive: true };
+}
+
+// Fetch active advertisement for a specific placement
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchActiveAd(placement: string): Promise<any | null> {
+  const sanityClient = await getClientForFetch();
+
+  if (sanityClient) {
+    try {
+      const ad = await sanityClient.fetch(activeAdQuery, { placement });
+      if (ad) {
+        return ad;
+      }
+    } catch (error) {
+      console.error(`Error fetching active ad for placement ${placement}:`, error);
+      logSanityFallback('activeAd', error);
+    }
+  } else {
+    logSanityFallback('activeAd', 'client unavailable');
+  }
+
+  return null;
 }

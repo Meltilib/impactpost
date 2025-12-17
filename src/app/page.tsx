@@ -2,11 +2,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Mic, Play, Calendar, Users, Briefcase, Heart } from 'lucide-react';
 import { ArticleCard } from '@/components/articles/article-card';
-import { AdBanner } from '@/components/ui/ad-banner';
+import { AdUnit } from '@/components/ad-unit';
 import { Button } from '@/components/ui/button';
 import { MultimediaPlayer } from '@/components/multimedia/multimedia-player';
 import { CONTENT_PILLARS } from '@/lib/constants';
-import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents, fetchFeaturedMultimedia } from '@/lib/sanity/fetch';
+import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents, fetchFeaturedMultimedia, fetchActiveAd } from '@/lib/sanity/fetch';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
 import MultimediaCover from '@/assets/images/multimedia-cover.jpg';
@@ -16,23 +16,20 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch data from Sanity (falls back to static data if Sanity not configured)
-  const [featuredStory, recentStories, sidebarStories, events, featuredMultimedia] = await Promise.all([
+  const [featuredStory, recentStories, sidebarStories, events, featuredMultimedia, leaderboardAd, sidebarAd] = await Promise.all([
     fetchFeaturedStory(),
     fetchRecentStories(),
     fetchSidebarStories(),
     fetchEvents(),
     fetchFeaturedMultimedia(),
+    fetchActiveAd('homepage_leaderboard'),
+    fetchActiveAd('homepage_sidebar'),
   ]);
   return (
     <div className="animate-in">
       {/* Leaderboard Ad Slot */}
       <section className="container mx-auto px-4 pt-8">
-        <AdBanner
-          format="leaderboard"
-          className="w-full min-h-[120px]"
-          href="/advertise"
-          ariaLabel="Leaderboard advertising slot"
-        />
+        <AdUnit ad={leaderboardAd} placement="homepage_leaderboard" />
       </section>
 
       {/* Hero Section */}
@@ -56,12 +53,7 @@ export default async function HomePage() {
             </div>
 
             {/* Sidebar Ad Slot (MPU) */}
-            <AdBanner
-              format="sidebar"
-              className="h-[250px] w-full"
-              href="/advertise"
-              ariaLabel="Sidebar advertising slot"
-            />
+            <AdUnit ad={sidebarAd} placement="homepage_sidebar" />
 
             {/* Newsletter Mini */}
             <div className="bg-brand-purple text-white p-6 border-2 border-black shadow-hard">
@@ -104,17 +96,7 @@ export default async function HomePage() {
             <ArticleCard key={story.id} story={story} />
           ))}
 
-          {/* In-Feed Ad Slot */}
-          {recentStories.length > 4 && (
-            <div className="md:col-span-2 relative">
-              <AdBanner
-                format="feed"
-                className="h-full min-h-[300px]"
-                href="/advertise"
-                ariaLabel="In-feed advertising slot"
-              />
-            </div>
-          )}
+
 
           {recentStories.length > 4 &&
             recentStories.slice(4).map(story => (

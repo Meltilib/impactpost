@@ -23,10 +23,18 @@ interface Category {
   slug: string;
 }
 
+interface Advertisement {
+  _id: string;
+  title: string;
+  clientName: string;
+}
+
 interface ArticleFormProps {
   mode: 'create' | 'edit';
   authors: Author[];
   categories: Category[];
+  advertisements: Advertisement[];
+  initialSponsorId?: string;
   initialData?: {
     _id?: string;
     title?: string;
@@ -48,6 +56,8 @@ interface ArticleFormProps {
     videoFileUrl?: string; // Internal File URL
     videoThumbnailAssetId?: string;
     videoThumbnailUrl?: string;
+    isSponsored?: boolean;
+    sponsorId?: string;
   };
 }
 
@@ -68,7 +78,7 @@ function hasPortableTextContent(blocks: unknown): blocks is unknown[] {
   });
 }
 
-export function ArticleForm({ mode, authors, categories, initialData = {} }: ArticleFormProps) {
+export function ArticleForm({ mode, authors, categories, advertisements, initialData = {}, initialSponsorId }: ArticleFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -93,6 +103,10 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
   const [videoFileUrl, setVideoFileUrl] = useState(initialData.videoFileUrl || '');
   const [videoThumbnailAssetId, setVideoThumbnailAssetId] = useState(initialData.videoThumbnailAssetId || '');
   const [videoThumbnailUrl, setVideoThumbnailUrl] = useState(initialData.videoThumbnailUrl || '');
+  // Sponsored Content State
+  const [isSponsored, setIsSponsored] = useState(initialData.isSponsored || !!initialSponsorId || false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [sponsorId, setSponsorId] = useState((initialData as any).sponsor?._ref || initialSponsorId || '');
   const [publishedAt, setPublishedAt] = useState(() => {
     const value = initialData.publishedAt || new Date().toISOString();
     const date = new Date(value);
@@ -216,8 +230,11 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
         photoCredit,
         mediaType,
         videoUrl: mediaType === 'video' ? videoUrl : undefined,
+
         videoFileAssetId: mediaType === 'video' ? (videoFileAssetId || undefined) : undefined,
         videoThumbnailAssetId: mediaType === 'video' ? (videoThumbnailAssetId || undefined) : undefined,
+        isSponsored,
+        sponsorId: isSponsored ? (sponsorId || undefined) : undefined,
       };
 
       let result;
@@ -357,6 +374,38 @@ export function ArticleForm({ mode, authors, categories, initialData = {} }: Art
               ))}
             </select>
           </div>
+        </div>
+
+        {/* Sponsored Content */}
+        <div className="bg-gray-50 border-2 border-dashed border-gray-300 p-4 rounded-lg">
+          <label className="flex items-center gap-3 cursor-pointer mb-4">
+            <input
+              type="checkbox"
+              checked={isSponsored}
+              onChange={(e) => setIsSponsored(e.target.checked)}
+              className="w-5 h-5 accent-brand-purple"
+            />
+            <span className="font-bold text-lg">Sponsored Content</span>
+          </label>
+
+          {isSponsored && (
+            <div>
+              <label className="block font-bold mb-2">Sponsor Campaign</label>
+              <select
+                value={sponsorId}
+                onChange={(e) => setSponsorId(e.target.value)}
+                className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
+              >
+                <option value="">Select advertisement...</option>
+                {advertisements.map((ad) => (
+                  <option key={ad._id} value={ad._id}>
+                    {ad.clientName} - {ad.title}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-gray-500 mt-1">Select the active advertisement campaign for this article.</p>
+            </div>
+          )}
         </div>
 
         {/* Media Type */}

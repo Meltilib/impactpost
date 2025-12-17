@@ -3,7 +3,7 @@
 import { ClerkProvider, UserButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Plus, Users, FolderOpen, AlertTriangle } from 'lucide-react';
+import { Home, Plus, Users, FolderOpen, AlertTriangle, Megaphone } from 'lucide-react';
 
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: Home },
   { href: '/admin/new', label: 'New Article', icon: Plus },
   { href: '/admin/authors', label: 'Authors', icon: Users },
+  { href: '/admin/advertisements', label: 'Advertisements', icon: Megaphone, roles: ['admin'] as UserRole[] },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen, roles: ['admin'] as UserRole[] },
   { href: '/admin/settings', label: 'Settings', icon: AlertTriangle },
 ];
@@ -38,19 +39,18 @@ function AdminSidebar() {
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {filteredNavItems.map((item) => {
-              const isActive = pathname === item.href || 
+              const isActive = pathname === item.href ||
                 (item.href !== '/admin' && pathname.startsWith(item.href));
               const Icon = item.icon;
-              
+
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                         ? 'bg-brand-purple text-white'
                         : 'text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Icon size={20} />
                     {item.label}
@@ -63,7 +63,7 @@ function AdminSidebar() {
 
         <div className="p-4 border-t border-white/10">
           <div className="flex items-center gap-3">
-            <UserButton 
+            <UserButton
               afterSignOutUrl="/admin/sign-in"
               appearance={{
                 elements: {
@@ -118,9 +118,9 @@ function ClerkNotConfigured() {
           <p>NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...</p>
           <p>CLERK_SECRET_KEY=sk_...</p>
         </div>
-        <a 
-          href="https://clerk.com" 
-          target="_blank" 
+        <a
+          href="https://clerk.com"
+          target="_blank"
           rel="noopener noreferrer"
           className="inline-block bg-brand-purple text-white px-6 py-2 font-bold hover:bg-brand-purple/90"
         >

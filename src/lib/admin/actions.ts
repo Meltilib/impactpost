@@ -22,6 +22,8 @@ export interface ArticleFormData {
   videoUrl?: string; // External URL
   videoFileAssetId?: string; // Sanity File ID
   videoThumbnailAssetId?: string;
+  isSponsored?: boolean;
+  sponsorId?: string;
 }
 
 export async function createArticle(data: ArticleFormData) {
@@ -53,6 +55,11 @@ export async function createArticle(data: ArticleFormData) {
       videoThumbnail: data.videoThumbnailAssetId ? {
         _type: 'image',
         asset: { _type: 'reference', _ref: data.videoThumbnailAssetId },
+      } : undefined,
+      isSponsored: data.isSponsored,
+      sponsor: data.sponsorId ? {
+        _type: 'reference',
+        _ref: data.sponsorId,
       } : undefined,
     };
 
@@ -107,6 +114,12 @@ export async function updateArticle(id: string, data: Partial<ArticleFormData>) 
         _type: 'image',
         asset: { _type: 'reference', _ref: data.videoThumbnailAssetId },
       };
+    }
+    if (data.isSponsored !== undefined) updates.isSponsored = data.isSponsored;
+    if (data.sponsorId !== undefined) {
+      updates.sponsor = data.sponsorId
+        ? { _type: 'reference', _ref: data.sponsorId }
+        : null;
     }
 
     await writeClient.patch(id).set(updates).commit();
@@ -244,6 +257,12 @@ export async function fetchArticleById(id: string) {
         category->{
           _id,
           title
+        },
+        isSponsored,
+        sponsor->{
+          _id,
+          title,
+          clientName
         }
       }
     `, { id });
@@ -608,5 +627,230 @@ export async function updateTickerSettings(payload: TickerPayload) {
   } catch (error) {
     console.error('Error updating ticker:', error);
     return { success: false, error: 'Failed to update ticker' };
+  }
+}
+
+// ------- Advertisements -------
+export interface AdvertisementPayload {
+  title: string;
+  clientName: string;
+  revenue?: number;
+  startDate: string;
+  endDate: string;
+  autoRenewal: boolean;
+  status: string;
+  imageAssetId?: string;
+  destinationUrl?: string;
+  disclosureText?: string;
+  placement?: string;
+}
+
+export async function fetchAdvertisements() {
+  await requireAdmin();
+  try {
+    const advertisements = await writeClient.fetch(`
+      *[_type == "advertisement"] | order(startDate desc) {
+        _id,
+        title,
+        clientName,
+        revenue,
+        startDate,
+        endDate,
+        autoRenewal,
+        status,
+        placement,
+        image {
+          asset->{
+            _id,
+            url
+          }
+        }
+      }
+    `);
+    return advertisements;
+  } catch (error) {
+    console.error('Error fetching advertisements:', error);
+    return [];
+  }
+}
+
+export async function fetchAdvertisementById(id: string) {
+  await requireAdmin();
+  try {
+    const advertisement = await writeClient.fetch(`
+      *[_type == "advertisement" && _id == $id][0] {
+        _id,
+        title,
+        clientName,
+        revenue,
+        startDate,
+        endDate,
+        autoRenewal,
+        status,
+        destinationUrl,
+        disclosureText,
+        placement,
+        image {
+          asset->{
+            _id,
+            url
+          }
+        },
+        "linkedArticles": *[_type == "article" && sponsor._ref == ^._id] {
+          _id,
+          title,
+          "slug": slug.current,
+          publishedAt,
+          isSponsored
+        }
+      }
+    `, { id });
+    return advertisement;
+  } catch (error) {
+    console.error('Error fetching advertisement:', error);
+    return null;
+  }
+}
+
+export async function createAdvertisement(payload: AdvertisementPayload) {
+  await requireAdmin();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const doc: any = {
+      _type: 'advertisement',
+      title: payload.title,
+      clientName: payload.clientName,
+      revenue: payload.revenue,
+      startDate: payload.startDate,
+      endDate: payload.endDate,
+      autoRenewal: payload.autoRenewal,
+      status: payload.status,
+      destinationUrl: payload.destinationUrl,
+      disclosureText: payload.disclosureText,
+      placement: payload.placement,
+    };
+
+    if (payload.imageAssetId) {
+      doc.image = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: payload.imageAssetId },
+      };
+    }
+
+    await writeClient.create(doc);
+
+    revalidatePath('/admin/advertisements');
+    revalidatePath('/admin');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating advertisement:', error);
+    return { success: false, error: 'Failed to create advertisement' };
+  }
+}
+
+export async function updateAdvertisement(id: string, payload: Partial<AdvertisementPayload>) {
+  await requireAdmin();
+  try {
+    const updates: Record<string, unknown> = {};
+    if (payload.title !== undefined) updates.title = payload.title;
+    if (payload.clientName !== undefined) updates.clientName = payload.clientName;
+    if (payload.revenue !== undefined) updates.revenue = payload.revenue;
+    if (payload.startDate !== undefined) updates.startDate = payload.startDate;
+    if (payload.endDate !== undefined) updates.endDate = payload.endDate;
+    if (payload.autoRenewal !== undefined) updates.autoRenewal = payload.autoRenewal;
+    if (payload.status !== undefined) updates.status = payload.status;
+    if (payload.destinationUrl !== undefined) updates.destinationUrl = payload.destinationUrl;
+    if (payload.disclosureText !== undefined) updates.disclosureText = payload.disclosureText;
+    if (payload.placement !== undefined) updates.placement = payload.placement;
+
+    if (payload.imageAssetId) {
+      updates.image = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: payload.imageAssetId },
+      };
+    }
+
+    await writeClient.patch(id).set(updates).commit();
+
+    revalidatePath('/admin/advertisements');
+    revalidatePath('/admin');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating advertisement:', error);
+    return { success: false, error: 'Failed to update advertisement' };
+  }
+}
+
+export async function deleteAdvertisement(id: string) {
+  await requireAdmin();
+  try {
+    await writeClient.delete(id);
+
+    revalidatePath('/admin/advertisements');
+    revalidatePath('/admin');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting advertisement:', error);
+    return { success: false, error: 'Failed to delete advertisement' };
+  }
+}
+
+export async function linkArticleToAdvertisement(articleId: string, advertisementId: string) {
+  await requireAdminOrEditor();
+  try {
+    await writeClient.patch(articleId).set({
+      isSponsored: true,
+      sponsor: {
+        _type: 'reference',
+        _ref: advertisementId,
+      },
+    }).commit();
+
+    revalidatePath(`/admin/advertisements/edit/${advertisementId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error linking article:', error);
+    return { success: false, error: 'Failed to link article' };
+  }
+}
+
+export async function unlinkArticleFromAdvertisement(articleId: string) {
+  await requireAdminOrEditor();
+  try {
+    await writeClient.patch(articleId).unset(['isSponsored', 'sponsor']).commit();
+
+    // We can't easily revalidate the specific ad page without passing the ID, 
+    // but revalidating the admin root or advertisements list helps.
+    // Ideally, the UI should handle optimistic updates or we pass adId if known.
+    revalidatePath('/admin/advertisements');
+    return { success: true };
+  } catch (error) {
+    console.error('Error unlinking article:', error);
+    return { success: false, error: 'Failed to unlink article' };
+  }
+}
+
+export async function searchArticles(searchTerm: string) {
+  if (!searchTerm || searchTerm.length < 2) return [];
+  await requireAdminOrEditor();
+
+  try {
+    // Basic fuzzy search on title
+    const articles = await writeClient.fetch(`
+      *[_type == "article" && title match $searchTerm + "*"] | order(publishedAt desc)[0...10] {
+        _id,
+        title,
+        "slug": slug.current,
+        publishedAt
+      }
+    `, { searchTerm });
+
+    return articles;
+  } catch (error) {
+    console.error('Error searching articles:', error);
+    return [];
   }
 }

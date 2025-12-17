@@ -464,3 +464,28 @@ export const siteSettingsQuery = groq`
     tickerItems
   }
 `;
+
+// Fetch active advertisement by placement
+export const activeAdQuery = groq`
+  *[_type == "advertisement" && status == "active" && placement == $placement && (startDate <= now() && endDate >= now())] | order(startDate desc)[0] {
+    _id,
+    title,
+    clientName,
+    image {
+      asset->{
+        _id,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      },
+      alt
+    },
+    destinationUrl,
+    disclosureText,
+    placement
+  }
+`;

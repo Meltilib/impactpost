@@ -220,6 +220,23 @@ export const article = defineType({
         },
       ],
     }),
+    defineField({
+      name: 'isSponsored',
+      title: 'Sponsored Content',
+      type: 'boolean',
+      group: 'meta',
+      description: 'Tag this article as sponsored content',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'sponsor',
+      title: 'Sponsor',
+      type: 'reference',
+      to: [{ type: 'advertisement' }],
+      group: 'meta',
+      description: 'Link to the advertisement campaign',
+      hidden: ({ document }) => !document?.isSponsored,
+    }),
   ],
   orderings: [
     {
