@@ -243,9 +243,10 @@ export function AdvertisementForm({ mode, initialData = {} }: AdvertisementFormP
                     className="w-full border-2 border-black p-3 focus:outline-none focus:ring-2 focus:ring-brand-purple"
                 >
                     <option value="">-- No Specific Placement --</option>
-                    <option value="homepage_leaderboard">Homepage Leaderboard (728x90)</option>
-                    <option value="homepage_sidebar">Homepage Sidebar (300x600)</option>
-                    <option value="article_footer">Article Footer (728x90)</option>
+                    <option value="homepage_leaderboard">Homepage Leaderboard (Width: Full, Min-Height: 120px)</option>
+                    <option value="homepage_sidebar">Homepage Sidebar (Width: 300px, Height: 250px)</option>
+                    <option value="homepage_feed">Homepage Feed / Latest Stories (Width: Full, Min-Height: 300px)</option>
+                    <option value="article_footer">Article Footer (Width: Full, Min-Height: 120px)</option>
                 </select>
                 <p className="text-sm text-gray-500 mt-2">Where should this ad appear automatically?</p>
             </div>

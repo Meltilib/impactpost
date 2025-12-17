@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -41,7 +43,7 @@ const AD_CONTENT: Record<BannerFormat, {
         <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-amber-500/10 to-transparent" />
       </>
     ),
-    image: 'https://images.unsplash.com/photo-1611974765270-ca12586343bb?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/ads/horizon-banking.png',
   },
   sidebar: {
     brand: 'LUMINA GALLERY',
@@ -49,7 +51,7 @@ const AD_CONTENT: Record<BannerFormat, {
     subtitle: 'New Exhibition: Oct 15 - Nov 30',
     cta: 'View Tickets',
     bg: 'bg-white',
-    text: 'text-white',
+    text: 'text-black',
     accent: 'text-white',
     border: 'border-black',
     pattern: (
@@ -59,7 +61,7 @@ const AD_CONTENT: Record<BannerFormat, {
         <div className="absolute inset-0 border-4 border-black m-1 opacity-10" />
       </>
     ),
-    image: 'https://images.unsplash.com/photo-1545989253-02cc26577f88?auto=format&fit=crop&w=600&q=80',
+    image: '/images/ads/lumina-gallery.png',
   },
   feed: {
     brand: 'TechNova 2025',
@@ -76,7 +78,7 @@ const AD_CONTENT: Record<BannerFormat, {
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl" />
       </>
     ),
-    image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
+    image: '/images/ads/technova-summit.png',
   },
 };
 
@@ -90,10 +92,17 @@ export function AdBanner({
 }: AdBannerProps) {
   const content = AD_CONTENT[format];
   const isInteractive = Boolean(href);
-  
+
   // Default mock link if none provided, to demonstrate hover states
-  const targetHref = href || '#'; 
+  const targetHref = href || '#';
   const isDemoLink = !href;
+
+  // Sizes based on format
+  const sizeClasses = {
+    leaderboard: 'w-full min-h-[120px]',
+    sidebar: 'w-full h-[250px]',
+    feed: 'w-full min-h-[300px]',
+  };
 
   const wrapperClasses = cn(
     'relative flex flex-col items-center justify-center p-6 text-center overflow-hidden group transition-all border-2 shadow-hard',
@@ -103,6 +112,7 @@ export function AdBanner({
     content.bg,
     content.text,
     content.border,
+    sizeClasses[format], // Apply size classes here
     className
   );
 
@@ -116,7 +126,7 @@ export function AdBanner({
             alt=""
             fill
             className="object-cover opacity-60 mix-blend-overlay"
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           <div className="absolute inset-0 bg-black/40" />
         </div>
@@ -137,15 +147,15 @@ export function AdBanner({
         <span className={cn('text-xs font-bold tracking-[0.2em] uppercase mb-1 opacity-90', content.accent)}>
           {content.brand}
         </span>
-        
+
         <h3 className={cn('font-heavy text-2xl md:text-3xl uppercase leading-none text-center mb-2', content.text)}>
           {content.title}
         </h3>
-        
+
         <p className={cn('font-display font-medium text-sm md:text-base max-w-md mb-4 opacity-95', content.text)}>
           {content.subtitle}
         </p>
-        
+
         <span
           className={cn(
             'inline-flex items-center gap-2 px-5 py-2 text-xs font-bold uppercase tracking-wider border-2 transition-all group-hover:gap-3',

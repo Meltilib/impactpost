@@ -16,7 +16,7 @@ export const revalidate = 60;
 
 export default async function HomePage() {
   // Fetch data from Sanity (falls back to static data if Sanity not configured)
-  const [featuredStory, recentStories, sidebarStories, events, featuredMultimedia, leaderboardAd, sidebarAd] = await Promise.all([
+  const [featuredStory, recentStories, sidebarStories, events, featuredMultimedia, leaderboardAd, sidebarAd, feedAd] = await Promise.all([
     fetchFeaturedStory(),
     fetchRecentStories(),
     fetchSidebarStories(),
@@ -24,6 +24,7 @@ export default async function HomePage() {
     fetchFeaturedMultimedia(),
     fetchActiveAd('homepage_leaderboard'),
     fetchActiveAd('homepage_sidebar'),
+    fetchActiveAd('homepage_feed'),
   ]);
   return (
     <div className="animate-in">
@@ -92,14 +93,17 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
-          {recentStories.slice(0, recentStories.length > 4 ? 4 : recentStories.length).map(story => (
+          {recentStories.slice(0, Math.min(3, recentStories.length)).map(story => (
             <ArticleCard key={story.id} story={story} />
           ))}
 
+          {/* Feed Ad Slot - appears after first 3 stories */}
+          <div className="flex items-stretch">
+            <AdUnit ad={feedAd} placement="homepage_feed" />
+          </div>
 
-
-          {recentStories.length > 4 &&
-            recentStories.slice(4).map(story => (
+          {recentStories.length > 3 &&
+            recentStories.slice(3).map(story => (
               <ArticleCard key={story.id} story={story} />
             ))}
         </div>
