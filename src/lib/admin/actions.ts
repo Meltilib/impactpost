@@ -645,6 +645,24 @@ export interface AdvertisementPayload {
   placement?: string;
 }
 
+export async function fetchAdvertisementOptions() {
+  await requireAdminOrEditor();
+  try {
+    const advertisements = await writeClient.fetch(`
+      *[_type == "advertisement"] | order(startDate desc) {
+        _id,
+        title,
+        clientName,
+        status
+      }
+    `);
+    return advertisements;
+  } catch (error) {
+    console.error('Error fetching advertisement options:', error);
+    return [];
+  }
+}
+
 export async function fetchAdvertisements() {
   await requireAdmin();
   try {

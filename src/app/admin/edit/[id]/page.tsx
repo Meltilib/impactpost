@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { ArticleForm } from '@/components/admin/article-form';
-import { fetchArticleById, fetchAuthors, fetchCategories, fetchAdvertisements } from '@/lib/admin/actions';
+import { fetchArticleById, fetchAuthors, fetchCategories, fetchAdvertisementOptions } from '@/lib/admin/actions';
 import { requireAdminOrEditor } from '@/lib/auth/permissions';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,7 @@ export default async function EditArticlePage({ params }: EditArticlePageProps) 
     fetchArticleById(id),
     fetchAuthors(),
     fetchCategories(),
-    fetchAdvertisements(),
+    fetchAdvertisementOptions(),
   ]);
 
   if (!article) {

@@ -1,6 +1,6 @@
 import { ArticleForm } from '@/components/admin/article-form';
 import { requireAdminOrEditor } from '@/lib/auth/permissions';
-import { fetchAuthors, fetchCategories, fetchAdvertisements } from '@/lib/admin/actions';
+import { fetchAuthors, fetchCategories, fetchAdvertisementOptions } from '@/lib/admin/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +13,7 @@ export default async function NewArticlePage({ searchParams }: NewArticlePagePro
   const [authors, categories, advertisements] = await Promise.all([
     fetchAuthors(),
     fetchCategories(),
-    fetchAdvertisements(),
+    fetchAdvertisementOptions(),
   ]);
   const sponsorId = typeof searchParams.sponsorId === 'string' ? searchParams.sponsorId : undefined;
 
@@ -30,4 +30,3 @@ export default async function NewArticlePage({ searchParams }: NewArticlePagePro
     </div>
   );
 }
-
