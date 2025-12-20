@@ -11,6 +11,7 @@ import { ArticleBody } from '@/components/portable-text';
 import { Button } from '@/components/ui/button';
 import { SITE_CONFIG } from '@/lib/constants';
 import { getCategoryColor } from '@/lib/utils';
+import { BackButton } from '@/components/navigation/back-button';
 import {
   KEY_TAKEAWAYS_CARD,
   KEY_TAKEAWAYS_ITEM,
@@ -135,17 +136,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
       <article className="animate-in">
         {/* Article Header */}
-        <header className="bg-brand-light border-b-2 border-black pt-12 pb-8">
-          <div className="container mx-auto px-4 max-w-4xl text-center">
-            <span className={`px-3 py-1 font-bold text-sm uppercase tracking-widest shadow-hard-sm mb-6 inline-block ${getCategoryColor(story.category)}`}>
-              {story.category}
-            </span>
-            <h1 className="font-heavy text-4xl md:text-6xl leading-tight mb-6 text-brand-dark">
-              {story.title}
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 font-display font-medium leading-relaxed mb-8">
-              {story.excerpt}
-            </p>
+        <header className="bg-brand-light border-b-2 border-black pt-12 pb-8 relative">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="absolute left-4 top-12 lg:left-8">
+              <BackButton />
+            </div>
+
+            <div className="text-center">
+              <span className={`px-3 py-1 font-bold text-sm uppercase tracking-widest shadow-hard-sm mb-6 inline-block ${getCategoryColor(story.category)}`}>
+                {story.category}
+              </span>
+              <h1 className="font-heavy text-4xl md:text-6xl leading-tight mb-6 text-brand-dark">
+                {story.title}
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-600 font-display font-medium leading-relaxed mb-8">
+                {story.excerpt}
+              </p>
+            </div>
 
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-sm text-gray-500 border-t border-b border-gray-300 py-4 max-w-2xl mx-auto">
               <div className="flex items-center gap-3">

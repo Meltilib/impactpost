@@ -137,7 +137,7 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {CONTENT_PILLARS.map((pillar, idx) => (
               <Link
-                href={`/news/${pillar.slug}`}
+                href={`/section/${pillar.slug}`}
                 key={pillar.slug}
                 className="group cursor-pointer relative block"
               >

@@ -71,12 +71,12 @@ export default async function SectionPage({ params }: SectionPageProps) {
       <section className="container mx-auto px-4 py-16">
         {/* Attachments */}
         <div className="flex items-center gap-4 mb-8 -translate-y-4">
-          <span className={cn(
-            "px-4 py-1.5 font-bold text-sm uppercase border-2 border-black shadow-hard-sm",
-            getCategoryColor(section.color)
-          )}>
-            HOME
-          </span>
+          <BackButton
+            variant="label"
+            label="HOME"
+            labelColor={getCategoryColor(section.color)}
+            className="text-white"
+          />
           <BackButton />
         </div>
 

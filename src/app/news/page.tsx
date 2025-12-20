@@ -34,9 +34,7 @@ export default async function NewsPage() {
       <section className="container mx-auto px-4 py-16">
         {/* Attachments */}
         <div className="flex items-center gap-4 mb-8 -translate-y-4">
-          <span className="px-4 py-1.5 font-bold text-sm uppercase border-2 border-black bg-brand-blue text-white shadow-hard-sm">
-            HOME
-          </span>
+          <BackButton variant="label" label="HOME" labelColor="bg-brand-blue" className="text-white" />
           <BackButton />
         </div>
 
