@@ -38,3 +38,8 @@ export function generateSlug(title: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 }
+
+export function isValidEmail(email: string) {
+  // Simple validation; also blocks obvious HTML/script injection vectors.
+  return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email);
+}

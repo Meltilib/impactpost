@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserRole } from '@/lib/auth/permissions';
+import { isValidEmail } from '@/lib/utils';
 
 type SubscriberStatus = 'subscribed' | 'unsubscribed';
 
@@ -58,10 +59,6 @@ function getContactsCreateUrl(audienceId?: string) {
 
 function getContactUrl(contactIdOrEmail: string) {
     return `https://api.resend.com/contacts/${encodeURIComponent(contactIdOrEmail)}`;
-}
-
-function isValidEmail(email: string) {
-    return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email);
 }
 
 export async function GET() {
@@ -133,6 +130,10 @@ export async function POST(req: Request) {
             },
             body: JSON.stringify({ email, unsubscribed: false })
         });
+
+        if (res.ok && res.status === 200) {
+            return NextResponse.json({ error: 'Subscriber already exists.' }, { status: 409 });
+        }
 
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));

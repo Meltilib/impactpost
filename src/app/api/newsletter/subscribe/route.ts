@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server';
-
-function isValidEmail(email: string) {
-    // Keep validation simple but block obvious HTML/script injection vectors.
-    return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email);
-}
+import { isValidEmail } from '@/lib/utils';
 
 export async function POST(req: Request) {
     try {
@@ -26,58 +22,72 @@ export async function POST(req: Request) {
         const audienceId = process.env.RESEND_AUDIENCE_ID;
 
         // 2. Add to Resend
-        if (apiKey) {
-            if (audienceId) {
-                // Create Contact in specific Audience
-                const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email,
-                        unsubscribed: false
-                    })
-                });
+        if (apiKey && audienceId) {
+            const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    unsubscribed: false
+                })
+            });
 
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({}));
-                    console.error('Resend API Error details:', JSON.stringify(errorData, null, 2));
+            const responseData = await res.json().catch(() => ({}));
 
-                    // Handle "Already exists" - Return success but with a specific flag
-                    if (res.status === 409) {
-                        return NextResponse.json({ success: true, message: 'You are already subscribed!', isDuplicate: true });
-                    }
-                    console.error('Resend API Error status:', res.status);
+            if (!res.ok) {
+                const message = typeof responseData?.message === 'string' ? responseData.message : '';
+                const looksDuplicate = res.status === 409 || /already|exists/i.test(message);
+
+                if (looksDuplicate) {
                     return NextResponse.json({
-                        error: 'Failed to subscribe. Please try again.',
-                        debug: process.env.NODE_ENV === 'development' ? errorData : undefined
-                    }, { status: 500 });
+                        success: true,
+                        message: 'You are already subscribed!',
+                        isDuplicate: true,
+                        mock: false
+                    });
                 }
 
-                // If successful and not a duplicate, try to send a welcome email
-                // We do this after the successful contact creation
-                // We use import() here to keep it server-side and avoid issues if needed
+                console.error('Resend API Error details:', JSON.stringify(responseData, null, 2));
+                console.error('Resend API Error status:', res.status);
+                return NextResponse.json({
+                    error: 'Failed to subscribe. Please try again.',
+                    debug: process.env.NODE_ENV === 'development' ? responseData : undefined
+                }, { status: 500 });
+            }
+
+            // Resend may return 200 for idempotent creates; treat that as "already subscribed"
+            const isDuplicate = res.status === 200;
+
+            if (!isDuplicate) {
                 try {
                     const { sendWelcomeEmail } = await import('@/lib/email/send-welcome-email');
-                    // We don't 'await' this if we want it to be truly non-blocking for response time,
-                    // but since subscription is the main goal, we trigger it and handle background completion
                     sendWelcomeEmail(email).catch(err => console.error('[API] Welcome email trigger failed:', err));
                 } catch (emailErr) {
                     console.error('[API] Could not import welcome email module:', emailErr);
                 }
-            } else {
-                // Fallback if no audience ID (mostly for testing/logging if configured incorrectly)
-                console.warn('RESEND_AUDIENCE_ID not set. Email not added to specific list.');
             }
-        } else {
-            console.warn('[Newsletter] RESEND_API_KEY not configured. Returning mock success.');
+
+            return NextResponse.json({
+                success: true,
+                message: isDuplicate ? 'You are already subscribed!' : 'Thank you for subscribing!',
+                isDuplicate,
+                mock: false
+            });
         }
+
+        if (!apiKey) {
+            console.warn('[Newsletter] RESEND_API_KEY not configured. Returning mock success.');
+        } else {
+            console.warn('RESEND_AUDIENCE_ID not set. Email not added to specific list.');
+        }
+
         return NextResponse.json({
             success: true,
             message: 'Thank you for subscribing!',
-            mock: !apiKey
+            mock: true
         });
 
     } catch (error) {

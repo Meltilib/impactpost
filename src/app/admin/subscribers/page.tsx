@@ -18,6 +18,7 @@ import {
     Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { isValidEmail } from '@/lib/utils';
 
 interface Subscriber {
     id: string;
@@ -128,7 +129,7 @@ export default function SubscribersPage() {
 
     const handleAddSubscriber = async () => {
         const email = newEmail.trim();
-        if (!email || !/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email)) {
+        if (!isValidEmail(email)) {
             setNotice({ type: 'error', message: 'Enter a valid email address.' });
             return;
         }
