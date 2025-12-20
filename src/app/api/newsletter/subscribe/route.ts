@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 
+function isValidEmail(email: string) {
+    // Keep validation simple but block obvious HTML/script injection vectors.
+    return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email);
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -13,7 +18,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, message: 'Subscribed!' });
         }
 
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        if (typeof email !== 'string' || !isValidEmail(email)) {
             return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
         }
 
@@ -66,8 +71,14 @@ export async function POST(req: Request) {
                 // Fallback if no audience ID (mostly for testing/logging if configured incorrectly)
                 console.warn('RESEND_AUDIENCE_ID not set. Email not added to specific list.');
             }
+        } else {
+            console.warn('[Newsletter] RESEND_API_KEY not configured. Returning mock success.');
         }
-        return NextResponse.json({ success: true, message: 'Thank you for subscribing!' });
+        return NextResponse.json({
+            success: true,
+            message: 'Thank you for subscribing!',
+            mock: !apiKey
+        });
 
     } catch (error) {
         console.error('Newsletter Error:', error);

@@ -1,4 +1,16 @@
-export const welcomeEmailTemplate = (email: string) => `
+function escapeHtml(value: string) {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+export const welcomeEmailTemplate = (email: string) => {
+    const safeEmail = escapeHtml(email);
+    const year = new Date().getFullYear();
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -123,8 +135,8 @@ export const welcomeEmailTemplate = (email: string) => `
             </div>
         </div>
         <div class="footer">
-            <p>Sent to ${email}</p>
-            <p>&copy; 2024 Impact Post. All rights reserved.</p>
+            <p>Sent to ${safeEmail}</p>
+            <p>&copy; ${year} Impact Post. All rights reserved.</p>
             <p>
                 Interested in supporting our work? <a href="mailto:info@impactpost.ca">Contact us</a><br>
                 Changed your mind? <a href="#">Unsubscribe</a>
@@ -134,3 +146,4 @@ export const welcomeEmailTemplate = (email: string) => `
 </body>
 </html>
 `;
+};

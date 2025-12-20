@@ -128,7 +128,7 @@ export default function SubscribersPage() {
 
     const handleAddSubscriber = async () => {
         const email = newEmail.trim();
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        if (!email || !/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email)) {
             setNotice({ type: 'error', message: 'Enter a valid email address.' });
             return;
         }

@@ -60,6 +60,10 @@ function getContactUrl(contactIdOrEmail: string) {
     return `https://api.resend.com/contacts/${encodeURIComponent(contactIdOrEmail)}`;
 }
 
+function isValidEmail(email: string) {
+    return /^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(email);
+}
+
 export async function GET() {
     const authError = await requireAdmin();
     if (authError) return authError;
@@ -116,7 +120,7 @@ export async function POST(req: Request) {
 
     try {
         const { email } = await req.json();
-        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+        if (typeof email !== 'string' || !isValidEmail(email)) {
             return NextResponse.json({ error: 'Invalid email address.' }, { status: 400 });
         }
 
