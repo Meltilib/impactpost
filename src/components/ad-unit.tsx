@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { AdBanner } from '@/components/ui/ad-banner';
 import { sanitizeUrl } from '@/lib/url-validator';
