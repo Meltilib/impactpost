@@ -6,6 +6,7 @@ import { AdUnit } from '@/components/ad-unit';
 import { Button } from '@/components/ui/button';
 import { MultimediaPlayer } from '@/components/multimedia/multimedia-player';
 import { CONTENT_PILLARS } from '@/lib/constants';
+import { NewsletterForm } from '@/components/newsletter-form';
 import { fetchFeaturedStory, fetchRecentStories, fetchSidebarStories, fetchEvents, fetchFeaturedMultimedia, fetchActiveAd } from '@/lib/sanity/fetch';
 import YouthBoy from '@/assets/images/youth-boy.jpg';
 import YouthGirl from '@/assets/images/youth-girl.jpg';
@@ -63,28 +64,11 @@ export default async function HomePage() {
             {/* Sidebar Ad Slot (MPU) */}
             <AdUnit ad={sidebarAd} placement="homepage_sidebar" />
 
-            {/* Newsletter Mini */}
-            <div className="bg-brand-purple text-white p-6 border-2 border-black shadow-hard">
-              <h3 className="font-bold text-xl mb-2">Join the Diaspora Network</h3>
-              <p className="text-sm mb-4 opacity-90">
-                Get the latest on community events, businesses, and stories.
-              </p>
-              <form className="flex gap-2">
-                <input
-                  type="email"
-                  required
-                  className="w-full p-2 text-black font-bold outline-none border-2 border-transparent focus:border-brand-yellow bg-white"
-                  placeholder="Email address"
-                />
-                <button
-                  type="submit"
-                  className="bg-brand-coral border-2 border-white p-2 hover:bg-white hover:text-brand-coral transition-colors font-bold"
-                  aria-label="Subscribe"
-                >
-                  →
-                </button>
-              </form>
-            </div>
+            <NewsletterForm
+              title="Join the Diaspora Network"
+              description="Get the latest on community events, businesses, and stories."
+              className="bg-brand-purple text-white p-6 border-2 border-black shadow-hard"
+            />
           </div>
         </div>
       </section>

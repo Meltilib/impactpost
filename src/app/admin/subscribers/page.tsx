@@ -1,7 +1,22 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Loader2, Mail, Calendar, CheckCircle, XCircle, AlertCircle, Download, ArrowUpDown, Filter } from 'lucide-react';
+import {
+    Loader2,
+    Mail,
+    Calendar,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    Download,
+    ArrowUpDown,
+    Filter,
+    Search,
+    UserPlus,
+    RefreshCw,
+    Copy,
+    Trash2
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Subscriber {
@@ -17,10 +32,15 @@ export default function SubscribersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isMock, setIsMock] = useState(false);
+    const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
     // Local State for UI
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [statusFilter, setStatusFilter] = useState<'all' | 'subscribed' | 'unsubscribed'>('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [actionId, setActionId] = useState<string | null>(null);
+    const [actionType, setActionType] = useState<string | null>(null);
 
     useEffect(() => {
         fetchSubscribers();
@@ -29,9 +49,13 @@ export default function SubscribersPage() {
     const fetchSubscribers = async () => {
         setLoading(true);
         setError(null);
+        setNotice(null);
         try {
-            const res = await fetch('/api/admin/subscribers');
-            if (!res.ok) throw new Error('Failed to fetch');
+            const res = await fetch('/api/admin/subscribers', { cache: 'no-store' });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data?.error || 'Failed to fetch');
+            }
             const data = await res.json();
 
             if (Array.isArray(data.subscribers)) {
@@ -40,9 +64,7 @@ export default function SubscribersPage() {
                 setSubscribers([]);
             }
 
-            if (data.mock) {
-                setIsMock(true);
-            }
+            setIsMock(Boolean(data.mock));
         } catch {
             setError('Could not load subscribers.');
         } finally {
@@ -67,6 +89,11 @@ export default function SubscribersPage() {
     const filteredSubscribers = useMemo(() => {
         let result = [...subscribers];
 
+        if (searchTerm.trim()) {
+            const query = searchTerm.trim().toLowerCase();
+            result = result.filter(s => s.email.toLowerCase().includes(query));
+        }
+
         // Filter
         if (statusFilter !== 'all') {
             result = result.filter(s => s.status === statusFilter);
@@ -80,7 +107,7 @@ export default function SubscribersPage() {
         });
 
         return result;
-    }, [subscribers, sortOrder, statusFilter]);
+    }, [subscribers, searchTerm, sortOrder, statusFilter]);
 
     const handleExportCSV = () => {
         const csvContent = [
@@ -99,6 +126,122 @@ export default function SubscribersPage() {
         document.body.removeChild(link);
     };
 
+    const handleAddSubscriber = async () => {
+        const email = newEmail.trim();
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+            setNotice({ type: 'error', message: 'Enter a valid email address.' });
+            return;
+        }
+
+        setActionId(email);
+        setActionType('add');
+        setNotice(null);
+        try {
+            const res = await fetch('/api/admin/subscribers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                const message = data?.error || 'Failed to add subscriber.';
+                if (res.status === 409) {
+                    setNotice({ type: 'info', message });
+                    return;
+                }
+                if (res.status === 429) {
+                    setNotice({ type: 'error', message: 'Rate limit reached. Try again in a moment.' });
+                    return;
+                }
+                throw new Error(message);
+            }
+
+            setNewEmail('');
+            setNotice({ type: 'success', message: `${email} added to subscribers.` });
+            await fetchSubscribers();
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to add subscriber.';
+            setNotice({ type: 'error', message });
+        } finally {
+            setActionId(null);
+            setActionType(null);
+        }
+    };
+
+    const handleToggleStatus = async (subscriber: Subscriber) => {
+        const nextStatus = subscriber.status === 'subscribed' ? 'unsubscribed' : 'subscribed';
+        setActionId(subscriber.id);
+        setActionType('toggle');
+        setNotice(null);
+        try {
+            const res = await fetch('/api/admin/subscribers', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: subscriber.id, status: nextStatus })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data?.error || 'Failed to update status.');
+            }
+
+            setSubscribers(prev =>
+                prev.map(item => item.id === subscriber.id ? { ...item, status: nextStatus } : item)
+            );
+            setNotice({
+                type: 'success',
+                message: `${subscriber.email} is now ${nextStatus}.`
+            });
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to update status.';
+            setNotice({ type: 'error', message });
+        } finally {
+            setActionId(null);
+            setActionType(null);
+        }
+    };
+
+    const handleDeleteSubscriber = async (subscriber: Subscriber) => {
+        if (!confirm(`Delete ${subscriber.email}? This cannot be undone.`)) {
+            return;
+        }
+
+        setActionId(subscriber.id);
+        setActionType('delete');
+        setNotice(null);
+        try {
+            const res = await fetch('/api/admin/subscribers', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: subscriber.id })
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data?.error || 'Failed to delete subscriber.');
+            }
+
+            setSubscribers(prev => prev.filter(item => item.id !== subscriber.id));
+            setNotice({ type: 'success', message: `${subscriber.email} deleted.` });
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to delete subscriber.';
+            setNotice({ type: 'error', message });
+        } finally {
+            setActionId(null);
+            setActionType(null);
+        }
+    };
+
+    const handleCopyEmail = async (email: string) => {
+        try {
+            await navigator.clipboard.writeText(email);
+            setNotice({ type: 'success', message: 'Email copied to clipboard.' });
+        } catch {
+            setNotice({ type: 'error', message: 'Could not copy email.' });
+        }
+    };
+
     return (
         <div className="p-8 max-w-6xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -113,15 +256,63 @@ export default function SubscribersPage() {
                         )}
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={fetchSubscribers} variant="outline" size="sm">
-                        Refresh
+                <div className="flex flex-wrap gap-2">
+                    <Button onClick={fetchSubscribers} variant="outline" size="sm" className="gap-2">
+                        <RefreshCw size={14} /> Force Refresh
                     </Button>
                     <Button onClick={handleExportCSV} variant="secondary" size="sm" className="gap-2">
                         <Download size={16} /> Export CSV
                     </Button>
                 </div>
             </div>
+
+            <div className="bg-white border rounded-lg shadow-sm p-4 mb-6 flex flex-col lg:flex-row gap-4 lg:items-end">
+                <div className="flex-1">
+                    <label className="text-xs font-bold uppercase text-gray-500">Search by email</label>
+                    <div className="mt-2 flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2">
+                        <Search size={16} className="text-gray-400" />
+                        <input
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="name@example.com"
+                            className="w-full text-sm outline-none"
+                        />
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <label className="text-xs font-bold uppercase text-gray-500">Add subscriber</label>
+                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
+                        <input
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            placeholder="new@subscriber.com"
+                            className="flex-1 text-sm border border-gray-300 rounded-md px-3 py-2"
+                        />
+                        <Button
+                            onClick={handleAddSubscriber}
+                            size="sm"
+                            className="gap-2"
+                            disabled={actionType === 'add'}
+                        >
+                            <UserPlus size={14} />
+                            Add
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            {notice && (
+                <div
+                    className={`mb-6 border rounded-lg p-3 text-sm ${notice.type === 'success'
+                            ? 'bg-green-50 border-green-200 text-green-700'
+                            : notice.type === 'error'
+                                ? 'bg-red-50 border-red-200 text-red-700'
+                                : 'bg-blue-50 border-blue-200 text-blue-700'
+                        }`}
+                >
+                    {notice.message}
+                </div>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -180,12 +371,13 @@ export default function SubscribersPage() {
                                     <th className="px-6 py-4 font-bold text-gray-700">Email</th>
                                     <th className="px-6 py-4 font-bold text-gray-700">Status</th>
                                     <th className="px-6 py-4 font-bold text-gray-700">Joined</th>
+                                    <th className="px-6 py-4 font-bold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {filteredSubscribers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="px-6 py-12 text-center text-gray-400">
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
                                             No subscribers found matching your criteria.
                                         </td>
                                     </tr>
@@ -211,6 +403,35 @@ export default function SubscribersPage() {
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar size={14} className="opacity-50" />
                                                     {new Date(sub.created_at).toLocaleDateString()}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button
+                                                        onClick={() => handleCopyEmail(sub.email)}
+                                                        className="text-xs font-bold text-gray-600 hover:text-black flex items-center gap-1"
+                                                        type="button"
+                                                    >
+                                                        <Copy size={12} />
+                                                        Copy
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleStatus(sub)}
+                                                        className="text-xs font-bold text-gray-600 hover:text-black"
+                                                        type="button"
+                                                        disabled={actionId === sub.id && actionType === 'toggle'}
+                                                    >
+                                                        {sub.status === 'subscribed' ? 'Unsubscribe' : 'Resubscribe'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteSubscriber(sub)}
+                                                        className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1"
+                                                        type="button"
+                                                        disabled={actionId === sub.id && actionType === 'delete'}
+                                                    >
+                                                        <Trash2 size={12} />
+                                                        Delete
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>

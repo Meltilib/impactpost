@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: Home },
   { href: '/admin/new', label: 'New Article', icon: Plus },
   { href: '/admin/authors', label: 'Authors', icon: Users },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: Users, roles: ['admin'] as UserRole[] },
   { href: '/admin/advertisements', label: 'Advertisements', icon: Megaphone, roles: ['admin'] as UserRole[] },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen, roles: ['admin'] as UserRole[] },
   { href: '/admin/settings', label: 'Settings', icon: AlertTriangle },

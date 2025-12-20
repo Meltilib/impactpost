@@ -1,10 +1,13 @@
 import { MetadataRoute } from 'next';
-import { getAllStories } from '@/lib/data';
+import { fetchAllStories, fetchCategorySlugs } from '@/lib/sanity/fetch';
 import { SECTIONS, SITE_CONFIG } from '@/lib/constants';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_CONFIG.url;
-  const stories = getAllStories();
+  const [stories, dynamicCategorySlugs] = await Promise.all([
+    fetchAllStories(),
+    fetchCategorySlugs(),
+  ]);
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -27,27 +30,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/youth-hub`,
+      url: `${baseUrl}/advertise`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/multimedia`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/community`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      priority: 0.6,
     },
   ];
 
   // Section/Category pages
-  const sectionPages: MetadataRoute.Sitemap = Object.keys(SECTIONS).map((category) => ({
+  const sectionSlugs = Array.from(
+    new Set([...Object.keys(SECTIONS), ...dynamicCategorySlugs])
+  );
+  const sectionPages: MetadataRoute.Sitemap = sectionSlugs.map((category) => ({
     url: `${baseUrl}/section/${category}`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,

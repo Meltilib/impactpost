@@ -37,13 +37,18 @@ export async function POST(req: Request) {
                 });
 
                 if (!res.ok) {
-                    const errorData = await res.json();
+                    const errorData = await res.json().catch(() => ({}));
+                    console.error('Resend API Error details:', JSON.stringify(errorData, null, 2));
+
                     // Handle "Already exists" - Return success but with a specific flag
                     if (res.status === 409) {
                         return NextResponse.json({ success: true, message: 'You are already subscribed!', isDuplicate: true });
                     }
-                    console.error('Resend API Error:', errorData);
-                    return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 });
+                    console.error('Resend API Error status:', res.status);
+                    return NextResponse.json({
+                        error: 'Failed to subscribe. Please try again.',
+                        debug: process.env.NODE_ENV === 'development' ? errorData : undefined
+                    }, { status: 500 });
                 }
 
                 // If successful and not a duplicate, try to send a welcome email

@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
-export function NewsletterForm() {
+interface NewsletterFormProps {
+    title?: string;
+    description?: string;
+    className?: string;
+}
+
+export function NewsletterForm({
+    title = 'Subscribe to the Newsletter',
+    description = 'Stay connected with your community. Weekly updates on events, news, and opportunities.',
+    className = "bg-brand-purple p-6 border-2 border-white shadow-[8px_8px_0px_white]"
+}: NewsletterFormProps) {
     const [email, setEmail] = useState('');
     const [honeypot, setHoneypot] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -70,10 +80,10 @@ export function NewsletterForm() {
     }
 
     return (
-        <div className="bg-brand-purple p-6 border-2 border-white shadow-[8px_8px_0px_white]">
-            <h4 className="font-heavy text-2xl mb-2">Subscribe to the Newsletter</h4>
-            <p className="text-white/80 mb-4">
-                Stay connected with your community. Weekly updates on events, news, and opportunities.
+        <div className={className}>
+            <h4 className="font-heavy text-2xl mb-2 leading-tight">{title}</h4>
+            <p className="text-white/80 mb-4 text-sm">
+                {description}
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 {/* Honeypot Field - Hidden from humans */}
