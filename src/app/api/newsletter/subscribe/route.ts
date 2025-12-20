@@ -45,16 +45,23 @@ export async function POST(req: Request) {
                     console.error('Resend API Error:', errorData);
                     return NextResponse.json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 });
                 }
+
+                // If successful and not a duplicate, try to send a welcome email
+                // We do this after the successful contact creation
+                // We use import() here to keep it server-side and avoid issues if needed
+                try {
+                    const { sendWelcomeEmail } = await import('@/lib/email/send-welcome-email');
+                    // We don't 'await' this if we want it to be truly non-blocking for response time,
+                    // but since subscription is the main goal, we trigger it and handle background completion
+                    sendWelcomeEmail(email).catch(err => console.error('[API] Welcome email trigger failed:', err));
+                } catch (emailErr) {
+                    console.error('[API] Could not import welcome email module:', emailErr);
+                }
             } else {
                 // Fallback if no audience ID (mostly for testing/logging if configured incorrectly)
                 console.warn('RESEND_AUDIENCE_ID not set. Email not added to specific list.');
             }
-        } else {
-            // Mock success for dev without keys
-            console.log(`[Dev Mode] Would add ${email} to Resend.`);
-            // Simulate duplicate for testing if email is specific (optional, but let's keep it simple)
         }
-
         return NextResponse.json({ success: true, message: 'Thank you for subscribing!' });
 
     } catch (error) {

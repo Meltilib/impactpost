@@ -307,10 +307,14 @@ export default async function HomePage() {
             IMPACT POST relies on the generosity of our readers. Help us keep our stories free and accessible to our community across Canada.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button variant="accent" size="lg">Become a Member</Button>
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-black">
-              Donate Once
-            </Button>
+            <Link href="mailto:info@impactpost.ca?subject=Membership%20Inquiry%20-%20Impact%20Post">
+              <Button variant="accent" size="lg">Become a Member</Button>
+            </Link>
+            <Link href="mailto:info@impactpost.ca?subject=Donation%20Inquiry%20-%20Impact%20Post">
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-black">
+                Donate Once
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

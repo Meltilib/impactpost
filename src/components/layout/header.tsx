@@ -81,7 +81,7 @@ export function Header() {
             >
               <Search size={20} />
             </button>
-            <Link href="/support">
+            <Link href="mailto:info@impactpost.ca?subject=Support%20Request%20-%20Impact%20Post">
               <Button size="sm" variant="accent" className="hidden sm:flex gap-2">
                 <Heart size={16} fill="currentColor" /> Support
               </Button>
@@ -106,7 +106,7 @@ export function Header() {
             ))}
             <div className="grid grid-cols-2 gap-4 mt-4">
               <Button variant="secondary" fullWidth>Subscribe</Button>
-              <Link href="/support" className="w-full">
+              <Link href="mailto:info@impactpost.ca?subject=Donation%20Inquiry%20-%20Impact%20Post" className="w-full">
                 <Button variant="primary" fullWidth>Donate</Button>
               </Link>
             </div>

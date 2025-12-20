@@ -54,7 +54,7 @@ export function Footer() {
               <li><Link href="/about" className="hover:text-white transition-colors">Our Mission</Link></li>
               <li><Link href="/about#team" className="hover:text-white transition-colors">Our Team</Link></li>
               <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="mailto:info@impactpost.ca" className="hover:text-white transition-colors">Contact</Link></li>
               <li><Link href="/advertise" className="hover:text-white transition-colors">Advertise</Link></li>
             </ul>
           </div>

@@ -4,7 +4,7 @@ import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
 import { fetchStoriesByCategory, fetchCategorySlugs } from '@/lib/sanity/fetch';
 import { SECTIONS } from '@/lib/constants';
-import { cn, getCategoryColor } from '@/lib/utils';
+import { getCategoryColor } from '@/lib/utils';
 import Link from 'next/link';
 import { BackButton } from '@/components/navigation/back-button';
 
