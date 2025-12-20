@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, ArrowRight } from 'lucide-react';
+import { sendGAEvent } from '@next/third-parties/google';
 
 interface SearchOverlayProps {
     isOpen: boolean;
@@ -31,6 +32,10 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
+            sendGAEvent({
+                event: 'search',
+                search_term: query.trim(),
+            });
             router.push(`/search?q=${encodeURIComponent(query.trim())}`);
             onClose();
             setQuery('');

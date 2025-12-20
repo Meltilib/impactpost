@@ -1,9 +1,38 @@
 # IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 11
+- **Total Implementations**: 12
 - **Success Rate**: 100%
 - **Focus Areas**: 🔧 Engineering (60%), 🔐 Auth (18%), 📦 CMS (9%), 🎨 Content Design (7%), 🧩 Ops (6%)
+
+---
+
+🚀 #12 2025-12-20 | Security & Performance Hardening | ✅ 120m | 🛡️security | 🔧engineering | 📁9f
+   • Comprehensive hardening of critical endpoints, background processing, and code hygiene.
+   • Implemented IP-based rate limiting on newsletter subscription via Upstash Redis.
+   • Refactored newsletter broadcast with sequential batching, pagination, and increased maxDuration.
+   • Resovled hydration mismatch in bookmarks and enforced HMAC signature verification for webhooks.
+
+   📁 **Files Created** (2):
+   - src/lib/rate-limit.ts - Upstash Redis rate limiting utility
+   - Implementation/12-security-performance-hardening-251220.md - Detailed log
+
+   📁 **Files Modified** (9):
+   - src/app/api/newsletter/subscribe/route.ts - Rate limiting + O(1) duplicate check
+   - src/app/api/admin/newsletter/send/route.ts - Background processing + pagination
+   - src/app/api/revalidate/route.ts - HMAC hex/base64 verification
+   - src/lib/utils.ts - Centralized fetchWithTimeout and escapeHtml
+   - src/lib/admin/actions.ts - Replaced any types with proper interfaces
+   - src/hooks/use-bookmarks.ts - Hydration fix
+   - src/app/layout.tsx - Removed hydration warning suppression
+   - src/app/api/admin/subscribers/route.ts - Admin guards + rate limiting
+   - src/app/api/admin/upload/route.ts - Upload hardening
+
+   ⚙️ **Key Features**:
+   - **Bulletproof Broadcast**: Sequentially batched sends with timeouts and pagination support.
+   - **Rate Limiting**: IP-based protection for public-facing subscription endpoints.
+   - **Hydration Clean**: Resolution of client/server mismatch for better reliability.
+   - **Sign Sanitization**: Strict webhook verification for secure cache revalidation.
 
 ---
 

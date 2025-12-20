@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { AdBanner } from '@/components/ui/ad-banner';
 import { sanitizeUrl } from '@/lib/url-validator';
+import { sendGAEvent } from '@next/third-parties/google';
 
 interface AdUnitProps {
     ad: {
@@ -86,7 +87,20 @@ export function AdUnit({ ad, placement }: AdUnitProps) {
     if (ad.destinationUrl) {
         return (
             <div className={currentContainerClass}>
-                <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full hover:opacity-90 transition-opacity">
+                <a
+                    href={linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full h-full hover:opacity-90 transition-opacity"
+                    onClick={() => {
+                        sendGAEvent({
+                            event: 'ad_click',
+                            ad_id: ad._id,
+                            ad_title: ad.title,
+                            placement: placement,
+                        });
+                    }}
+                >
                     {Content}
                 </a>
             </div>

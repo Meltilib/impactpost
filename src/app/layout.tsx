@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/footer';
 import { Ticker } from '@/components/layout/ticker';
 import { SITE_CONFIG } from '@/lib/constants';
 import { isSanityEnabled } from '@/lib/sanity/client';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
 export const revalidate = 60;
@@ -185,6 +186,9 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+        )}
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { cn, isValidEmail } from '@/lib/utils';
+import { sendGAEvent } from '@next/third-parties/google';
 
 interface NewsletterFormProps {
     title?: string;
@@ -57,6 +58,15 @@ export function NewsletterForm({
             setStatus(isDuplicate ? 'duplicate' : 'success');
             setMessage(apiMessage);
             setEmail('');
+
+            // Track successful signup (non-duplicate)
+            if (!isDuplicate) {
+                sendGAEvent({
+                    event: 'newsletter_signup',
+                    category: 'conversion',
+                    label: 'homepage_sidebar' // Assuming default/location
+                });
+            }
         } catch (error: unknown) {
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'An error occurred');
@@ -133,11 +143,11 @@ export function NewsletterForm({
                 </div>
 
                 {status === 'error' && (
-                <div className="flex items-center gap-2 text-brand-coral bg-black/20 p-2 rounded text-sm font-bold mt-2 animate-in slide-in-from-top-1">
-                    <AlertCircle size={16} />
-                    <span>{message}</span>
-                </div>
-            )}
+                    <div className="flex items-center gap-2 text-brand-coral bg-black/20 p-2 rounded text-sm font-bold mt-2 animate-in slide-in-from-top-1">
+                        <AlertCircle size={16} />
+                        <span>{message}</span>
+                    </div>
+                )}
 
                 <p className="text-[10px] text-white/50 mt-2">
                     Protected by smart anti-spam measures.
