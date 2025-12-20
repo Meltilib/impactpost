@@ -6,24 +6,18 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getCategoryColor(category: string): string {
-  switch (category) {
-    case 'Community Voices':
-      return 'bg-brand-purple text-white';
-    case 'Youth':
-      return 'bg-brand-teal text-black';
-    case 'Business':
-      return 'bg-brand-blue text-white';
-    case 'Culture':
-      return 'bg-brand-coral text-white';
-    case 'Wellness':
-      return 'bg-brand-yellow text-black';
-    case 'Issues':
-      return 'bg-black text-white';
-    case 'Multimedia':
-      return 'bg-brand-coral text-white';
-    default:
-      return 'bg-black text-white';
+  const cat = category.toLowerCase();
+  if (cat.includes('community') || cat.includes('voices') || cat.includes('culture') || cat.includes('purple')) {
+    if (cat.includes('yellow') || cat.includes('culture')) return 'bg-brand-yellow text-black';
+    return 'bg-brand-purple text-white';
   }
+  if (cat.includes('youth') || cat.includes('teal')) return 'bg-brand-teal text-black';
+  if (cat.includes('business') || cat.includes('blue') || cat.includes('news')) return 'bg-brand-blue text-white';
+  if (cat.includes('coral') || cat.includes('multimedia')) return 'bg-brand-coral text-white';
+  if (cat.includes('wellness') || cat.includes('yellow')) return 'bg-brand-yellow text-black';
+  if (cat.includes('issues') || cat.includes('black')) return 'bg-black text-white';
+
+  return 'bg-black text-white';
 }
 
 export function getCategorySlug(category: string): string {

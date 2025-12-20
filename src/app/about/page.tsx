@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Mail, Twitter, Linkedin, ArrowRight } from 'lucide-react';
+import { BackButton } from '@/components/navigation/back-button';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -35,9 +36,12 @@ export default function AboutPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow rounded-full blur-[80px] opacity-20 pointer-events-none" />
 
         <div className="container mx-auto px-4 max-w-4xl text-center relative z-10">
-          <span className="bg-brand-dark text-brand-yellow px-4 py-1 font-bold text-sm uppercase tracking-widest shadow-hard-sm mb-6 inline-block transform -rotate-2">
-            Since 2023
-          </span>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <span className="bg-brand-purple text-white px-4 py-1.5 font-bold text-sm uppercase tracking-widest shadow-hard-sm inline-block transform -rotate-2">
+              HOME
+            </span>
+            <BackButton />
+          </div>
           <h1 className="font-heavy text-5xl md:text-7xl mb-8 leading-tight text-brand-dark">
             AMPLIFYING <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-brand-coral">

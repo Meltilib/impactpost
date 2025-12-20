@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { ArticleCard } from '@/components/articles/article-card';
 import { fetchAllStories } from '@/lib/sanity/fetch';
+import { BackButton } from '@/components/navigation/back-button';
 
 export const metadata: Metadata = {
   title: 'Latest News',
@@ -31,6 +32,14 @@ export default async function NewsPage() {
 
       {/* Content Grid */}
       <section className="container mx-auto px-4 py-16">
+        {/* Attachments */}
+        <div className="flex items-center gap-4 mb-8 -translate-y-4">
+          <span className="px-4 py-1.5 font-bold text-sm uppercase border-2 border-black bg-brand-blue text-white shadow-hard-sm">
+            HOME
+          </span>
+          <BackButton />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {stories.map(story => (
             <ArticleCard key={story.id} story={story} />

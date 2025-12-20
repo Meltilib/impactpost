@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit } from 'lucide-react';
 import { fetchAdvertisements, deleteAdvertisement } from '@/lib/admin/actions';
 import { requireAdmin } from '@/lib/auth/permissions';
 import { revalidatePath } from 'next/cache';
+import { DeleteAdButton } from '@/components/admin/delete-ad-button';
 
 interface Advertisement {
     _id: string;
@@ -27,8 +28,9 @@ export default async function AdvertisementsPage() {
     await requireAdmin();
     const advertisements = await fetchAdvertisements();
 
-    async function handleDelete(id: string) {
+    async function handleDeleteAction(formData: FormData) {
         'use server';
+        const id = formData.get('adId') as string;
         await deleteAdvertisement(id);
         revalidatePath('/admin/advertisements');
     }
@@ -124,20 +126,7 @@ export default async function AdvertisementsPage() {
                                             >
                                                 <Edit size={18} />
                                             </Link>
-                                            <form action={handleDelete.bind(null, ad._id)}>
-                                                <button
-                                                    type="submit"
-                                                    className="p-2 hover:bg-red-100 text-red-600 rounded"
-                                                    title="Delete"
-                                                    onClick={(e) => {
-                                                        if (!confirm('Are you sure you want to delete this advertisement?')) {
-                                                            e.preventDefault();
-                                                        }
-                                                    }}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </form>
+                                            <DeleteAdButton adId={ad._id} formAction={handleDeleteAction} />
                                         </div>
                                     </td>
                                 </tr>

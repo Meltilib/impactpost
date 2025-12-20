@@ -8,6 +8,7 @@ import { Story } from '@/types';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Bookmark, Loader2, ArrowRight } from 'lucide-react';
+import { BackButton } from '@/components/navigation/back-button';
 
 export default function SavedPage() {
     const { bookmarks, isInitialized } = useBookmarks();
@@ -46,8 +47,11 @@ export default function SavedPage() {
         <div className="container mx-auto px-4 py-12 md:py-20">
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center border-2 border-black shadow-hard-sm">
-                        <Bookmark size={24} className="text-black" />
+                    <div className="flex items-center gap-4">
+                        <span className="px-4 py-1.5 font-bold text-sm uppercase border-2 border-black bg-brand-yellow text-black shadow-hard-sm">
+                            HOME
+                        </span>
+                        <BackButton />
                     </div>
                     <div>
                         <h1 className="text-4xl font-heavy italic">SAVED STORIES</h1>

@@ -4,7 +4,9 @@ import { ArticleCard } from '@/components/articles/article-card';
 import { Button } from '@/components/ui/button';
 import { fetchStoriesByCategory, fetchCategorySlugs } from '@/lib/sanity/fetch';
 import { SECTIONS } from '@/lib/constants';
+import { cn, getCategoryColor } from '@/lib/utils';
 import Link from 'next/link';
+import { BackButton } from '@/components/navigation/back-button';
 
 interface SectionPageProps {
   params: Promise<{ category: string }>;
@@ -67,6 +69,17 @@ export default async function SectionPage({ params }: SectionPageProps) {
 
       {/* Content Grid */}
       <section className="container mx-auto px-4 py-16">
+        {/* Attachments */}
+        <div className="flex items-center gap-4 mb-8 -translate-y-4">
+          <span className={cn(
+            "px-4 py-1.5 font-bold text-sm uppercase border-2 border-black shadow-hard-sm",
+            getCategoryColor(section.color)
+          )}>
+            HOME
+          </span>
+          <BackButton />
+        </div>
+
         {stories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {stories.map(story => (

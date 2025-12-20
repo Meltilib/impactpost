@@ -99,13 +99,13 @@ export function AdBanner({
 
   // Sizes based on format
   const sizeClasses = {
-    leaderboard: 'w-full min-h-[120px]',
+    leaderboard: 'w-full min-h-[90px]',
     sidebar: 'w-full h-[250px]',
-    feed: 'w-full min-h-[300px]',
+    feed: 'w-full min-h-[120px]',
   };
 
   const wrapperClasses = cn(
-    'relative flex flex-col items-center justify-center p-6 text-center overflow-hidden group transition-all border-2 shadow-hard',
+    'relative flex flex-col items-center justify-center p-4 text-center overflow-hidden group transition-all border-2 shadow-hard',
     isInteractive || isDemoLink
       ? 'cursor-pointer hover:shadow-hard-lg hover:-translate-y-0.5'
       : 'cursor-default',

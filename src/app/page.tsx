@@ -29,14 +29,14 @@ export default async function HomePage() {
   return (
     <div className="animate-in">
       {/* SEO H1 - Primary Page Topic Signal */}
-      <section className="container mx-auto px-4 pt-6 pb-2">
+      <section className="container mx-auto px-4 pt-4 pb-0">
         <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800 border-l-4 border-brand-purple pl-4">
           Impact Post: Voices of the Canadian-Somali Diaspora
         </h1>
       </section>
 
       {/* Leaderboard Ad Slot */}
-      <section className="container mx-auto px-4 pt-8">
+      <section className="container mx-auto px-4 pt-2">
         <AdUnit ad={leaderboardAd} placement="homepage_leaderboard" />
       </section>
 

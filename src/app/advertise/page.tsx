@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { ArrowRight, Megaphone, Target, HandCoins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/navigation/back-button';
 import { SITE_CONFIG } from '@/lib/constants';
 
 export const metadata: Metadata = {
@@ -53,7 +54,12 @@ export default function AdvertisePage() {
           <div className="absolute -bottom-10 -left-10 w-56 h-56 bg-brand-yellow rounded-full blur-3xl opacity-40" />
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-5 gap-10 items-center">
             <div className="md:col-span-3 space-y-4">
-              <p className="font-bold uppercase text-sm tracking-[0.2em] text-brand-purple">Advertise</p>
+              <div className="flex items-center gap-4">
+                <span className="px-4 py-1.5 font-bold text-sm uppercase border-2 border-black bg-brand-purple text-white shadow-hard-sm">
+                  HOME
+                </span>
+                <BackButton />
+              </div>
               <h1 className="font-heavy text-4xl md:text-5xl leading-tight">
                 Amplify your message with {SITE_CONFIG.name}
               </h1>
