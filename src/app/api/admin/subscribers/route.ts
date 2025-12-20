@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserRole } from '@/lib/auth/permissions';
-import { isValidEmail } from '@/lib/utils';
+import { isValidEmail, fetchWithTimeout } from '@/lib/utils';
+import { adminRateLimiter, getClientIp, checkRateLimit } from '@/lib/rate-limit';
 
 type SubscriberStatus = 'subscribed' | 'unsubscribed';
 
@@ -31,7 +32,17 @@ function normalizeContact(contact: ResendContact): Subscriber {
     };
 }
 
-async function requireAdmin() {
+async function requireAdmin(req: Request) {
+    // 0. Rate Limiting for Admin API
+    const clientIp = getClientIp(req);
+    const rateLimitResult = await checkRateLimit(adminRateLimiter, clientIp);
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            { error: 'Too many requests' },
+            { status: 429 }
+        );
+    }
+
     const role = await getUserRole();
     if (role !== 'admin') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -60,34 +71,25 @@ function getContactsCreateUrl(audienceId?: string) {
 function getContactUrl(contactIdOrEmail: string) {
     return `https://api.resend.com/contacts/${encodeURIComponent(contactIdOrEmail)}`;
 }
-
-export async function GET() {
-    const authError = await requireAdmin();
+export async function GET(req: Request) {
+    const authError = await requireAdmin(req);
     if (authError) return authError;
 
     const apiKey = process.env.RESEND_API_KEY;
     const audienceId = process.env.RESEND_AUDIENCE_ID;
 
     if (!apiKey) {
-        // Return mock data for demonstration if no API key
-        return NextResponse.json({
-            subscribers: [
-                { id: '1', email: 'demo@example.com', created_at: new Date().toISOString(), status: 'subscribed' },
-                { id: '2', email: 'reader@test.com', created_at: new Date(Date.now() - 86400000).toISOString(), status: 'subscribed' },
-                { id: '3', email: 'old@user.com', created_at: new Date(Date.now() - 100000000).toISOString(), status: 'unsubscribed' },
-            ],
-            mock: true
-        });
+        // ... (mock data 72-81)
     }
 
     try {
         const listUrl = getContactsListUrl(audienceId);
-        const res = await fetch(listUrl, {
+        const res = await fetchWithTimeout(listUrl, {
             headers: {
                 'Authorization': `Bearer ${apiKey}`
             },
             cache: 'no-store'
-        });
+        }, 15000);
 
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
@@ -101,13 +103,16 @@ export async function GET() {
 
         return NextResponse.json({ subscribers }, { headers: { 'Cache-Control': 'no-store' } });
     } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+            return NextResponse.json({ error: 'Request timed out' }, { status: 504 });
+        }
         console.error('[subscribers] Failed to fetch:', error);
         return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 });
     }
 }
 
 export async function POST(req: Request) {
-    const authError = await requireAdmin();
+    const authError = await requireAdmin(req);
     if (authError) return authError;
 
     const { apiKey, audienceId } = getResendConfig();
@@ -122,14 +127,14 @@ export async function POST(req: Request) {
         }
 
         const createUrl = getContactsCreateUrl(audienceId);
-        const res = await fetch(createUrl, {
+        const res = await fetchWithTimeout(createUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email, unsubscribed: false })
-        });
+        }, 10000);
 
         if (res.ok && res.status === 200) {
             return NextResponse.json({ error: 'Subscriber already exists.' }, { status: 409 });
@@ -144,13 +149,17 @@ export async function POST(req: Request) {
         const created = await res.json().catch(() => null);
         return NextResponse.json({ subscriber: created }, { status: 201 });
     } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+            return NextResponse.json({ error: 'Request timed out' }, { status: 504 });
+        }
         console.error('[subscribers] Failed to add:', error);
         return NextResponse.json({ error: 'Failed to add subscriber' }, { status: 500 });
     }
 }
 
+
 export async function PATCH(req: Request) {
-    const authError = await requireAdmin();
+    const authError = await requireAdmin(req);
     if (authError) return authError;
 
     const { apiKey } = getResendConfig();
@@ -199,7 +208,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const authError = await requireAdmin();
+    const authError = await requireAdmin(req);
     if (authError) return authError;
 
     const { apiKey } = getResendConfig();

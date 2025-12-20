@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Clock, Twitter, Facebook, Linkedin } from 'lucide-react';
 import { fetchStoryBySlug, fetchActiveAd, fetchArticleSlugs, fetchRecentStories } from '@/lib/sanity/fetch';
 import { AdUnit } from '@/components/ad-unit';
@@ -311,7 +312,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <p className="text-gray-600 mb-4">
                   {story.author.bio || `${story.author.role}. Contributing writer for Impact Post.`}
                 </p>
-                <Button size="sm" variant="outline">View all articles</Button>
+                <Link href="/news">
+                  <Button size="sm" variant="outline">View all articles</Button>
+                </Link>
               </div>
             </div>
           </div>

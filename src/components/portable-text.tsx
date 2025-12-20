@@ -4,6 +4,7 @@ import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import type { PortableTextBlock } from '@portabletext/types';
 import Image from 'next/image';
 import { urlFor } from '@/lib/sanity/image';
+import { sanitizeUrl, isExternalUrl } from '@/lib/url-validator';
 import {
   KEY_TAKEAWAYS_CARD,
   KEY_TAKEAWAYS_ITEM,
@@ -112,7 +113,7 @@ const components: PortableTextComponents = {
   types: {
     image: ({ value }: { value: ImageValue }) => {
       if (!value?.asset) return null;
-      
+
       return (
         <figure className="my-8 border-2 border-black shadow-hard overflow-hidden">
           <Image
@@ -196,12 +197,17 @@ const components: PortableTextComponents = {
       <span className="underline">{children}</span>
     ),
     link: ({ value, children }: { value?: LinkValue; children: React.ReactNode }) => {
-      const target = value?.openInNewTab ? '_blank' : undefined;
-      const rel = value?.openInNewTab ? 'noopener noreferrer' : undefined;
-      
+      // Security: Sanitize href to prevent XSS from CMS content
+      const href = sanitizeUrl(value?.href || '#', '#');
+      const isExternal = isExternalUrl(href);
+
+      // Automatically set secure attributes for external links
+      const target = value?.openInNewTab || isExternal ? '_blank' : undefined;
+      const rel = target === '_blank' ? 'noopener noreferrer' : undefined;
+
       return (
         <a
-          href={value?.href || '#'}
+          href={href}
           target={target}
           rel={rel}
           className="text-brand-purple font-bold underline hover:text-brand-coral transition-colors"

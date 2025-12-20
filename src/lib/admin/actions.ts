@@ -733,8 +733,26 @@ export async function fetchAdvertisementById(id: string) {
 export async function createAdvertisement(payload: AdvertisementPayload) {
   await requireAdmin();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const doc: any = {
+    // Properly typed document for Sanity create
+    interface SanityAdvertisementDoc {
+      _type: 'advertisement';
+      title: string;
+      clientName: string;
+      revenue?: number;
+      startDate: string;
+      endDate: string;
+      autoRenewal: boolean;
+      status: string;
+      destinationUrl?: string;
+      disclosureText?: string;
+      placement?: string;
+      image?: {
+        _type: 'image';
+        asset: { _type: 'reference'; _ref: string };
+      };
+    }
+
+    const doc: SanityAdvertisementDoc = {
       _type: 'advertisement',
       title: payload.title,
       clientName: payload.clientName,

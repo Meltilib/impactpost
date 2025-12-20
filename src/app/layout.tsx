@@ -128,7 +128,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}
-      suppressHydrationWarning
     >
       <head>
         <script

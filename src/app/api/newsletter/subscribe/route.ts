@@ -1,37 +1,27 @@
 import { NextResponse } from 'next/server';
-import { isValidEmail } from '@/lib/utils';
-
-// Helper to check if contact already exists in the audience
-async function checkContactExists(apiKey: string, audienceId: string, email: string): Promise<boolean> {
-    try {
-        // Query the audience contacts to check if email exists
-        const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-            },
-        });
-
-        if (!res.ok) {
-            console.warn('[Newsletter] Could not check existing contacts:', res.status);
-            return false; // Assume new if we can't check
-        }
-
-        const data = await res.json();
-        const contacts = data?.data || [];
-
-        // Check if any contact has this email
-        return contacts.some((contact: { email?: string }) =>
-            contact.email?.toLowerCase() === email.toLowerCase()
-        );
-    } catch (err) {
-        console.error('[Newsletter] Error checking contact existence:', err);
-        return false; // Assume new if check fails
-    }
-}
+import { isValidEmail, fetchWithTimeout } from '@/lib/utils';
+import { newsletterRateLimiter, getClientIp, checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
     try {
+        // 0. Rate Limiting (Security)
+        const clientIp = getClientIp(req);
+        const rateLimitResult = await checkRateLimit(newsletterRateLimiter, clientIp);
+
+        if (!rateLimitResult.success) {
+            console.log(`[Newsletter] Rate limit exceeded for IP: ${clientIp}`);
+            return NextResponse.json(
+                { error: 'Too many requests. Please try again later.' },
+                {
+                    status: 429,
+                    headers: {
+                        'Retry-After': '60',
+                        'X-RateLimit-Remaining': '0',
+                    }
+                }
+            );
+        }
+
         const body = await req.json();
         const { email, honeypot } = body;
 
@@ -49,10 +39,30 @@ export async function POST(req: Request) {
         const audienceId = process.env.RESEND_AUDIENCE_ID;
 
         if (apiKey && audienceId) {
-            // FIRST: Check if contact already exists
-            const alreadyExists = await checkContactExists(apiKey, audienceId, email);
+            // Performance optimization: Instead of fetching ALL contacts to check existence (O(n)),
+            // we use "try create, handle duplicate" pattern (O(1))
+            const res = await fetchWithTimeout(
+                `https://api.resend.com/audiences/${audienceId}/contacts`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email,
+                        unsubscribed: false
+                    })
+                }
+            );
 
-            if (alreadyExists) {
+            const responseData = await res.json().catch(() => ({}));
+
+            // Resend returns 200 for existing contacts, 201 for new
+            const isNewSubscriber = res.status === 201;
+            const isDuplicate = res.status === 200 || res.status === 409;
+
+            if (isDuplicate) {
                 console.log(`[Newsletter] Contact already exists: ${email}`);
                 return NextResponse.json({
                     success: true,
@@ -62,26 +72,10 @@ export async function POST(req: Request) {
                 });
             }
 
-            // Create the contact (we know it doesn't exist)
-            const res = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    unsubscribed: false
-                })
-            });
-
-            const responseData = await res.json().catch(() => ({}));
-
             if (!res.ok) {
                 const message = typeof responseData?.message === 'string' ? responseData.message : '';
-                const looksDuplicate = res.status === 409 || /already|exists/i.test(message);
-
-                if (looksDuplicate) {
+                // Double-check for duplicate indicators in error message
+                if (/already|exists/i.test(message)) {
                     return NextResponse.json({
                         success: true,
                         message: 'You are already subscribed!',
@@ -97,13 +91,15 @@ export async function POST(req: Request) {
                 }, { status: 500 });
             }
 
-            // Successfully created - send welcome email
-            console.log(`[Newsletter] New subscriber added: ${email}`);
-            try {
-                const { sendWelcomeEmail } = await import('@/lib/email/send-welcome-email');
-                sendWelcomeEmail(email).catch(err => console.error('[API] Welcome email failed:', err));
-            } catch (emailErr) {
-                console.error('[API] Could not import welcome email module:', emailErr);
+            // Successfully created new subscriber - send welcome email
+            if (isNewSubscriber) {
+                console.log(`[Newsletter] New subscriber added: ${email}`);
+                try {
+                    const { sendWelcomeEmail } = await import('@/lib/email/send-welcome-email');
+                    sendWelcomeEmail(email).catch(err => console.error('[API] Welcome email failed:', err));
+                } catch (emailErr) {
+                    console.error('[API] Could not import welcome email module:', emailErr);
+                }
             }
 
             return NextResponse.json({
@@ -127,7 +123,17 @@ export async function POST(req: Request) {
         });
 
     } catch (error) {
+        // Handle timeout specifically
+        if (error instanceof Error && error.name === 'AbortError') {
+            console.error('[Newsletter] API request timed out');
+            return NextResponse.json(
+                { error: 'Request timed out. Please try again.' },
+                { status: 504 }
+            );
+        }
+
         console.error('Newsletter Error:', error);
         return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
     }
 }
+

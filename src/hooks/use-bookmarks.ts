@@ -15,11 +15,15 @@ function getStoredBookmarks(): string[] {
 }
 
 export function useBookmarks() {
-    const [bookmarks, setBookmarks] = useState<string[]>(() => getStoredBookmarks());
-    const isInitialized = true;
+    const [bookmarks, setBookmarks] = useState<string[]>([]);
+    const [isInitialized, setIsInitialized] = useState(false);
 
-    // Listen for changes from other components/tabs
+    // Initial load and listeners
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setBookmarks(getStoredBookmarks());
+        setIsInitialized(true);
+
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === STORAGE_KEY) {
                 setBookmarks(getStoredBookmarks());

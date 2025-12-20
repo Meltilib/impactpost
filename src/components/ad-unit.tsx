@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { AdBanner } from '@/components/ui/ad-banner';
+import { sanitizeUrl } from '@/lib/url-validator';
 
 interface AdUnitProps {
     ad: {
@@ -38,7 +39,8 @@ export function AdUnit({ ad, placement }: AdUnitProps) {
     }
 
     const imageUrl = ad.image.asset.url;
-    const linkUrl = ad.destinationUrl || '#';
+    // Security: Validate destination URL to prevent XSS from CMS content
+    const linkUrl = ad.destinationUrl ? sanitizeUrl(ad.destinationUrl, '#') : '#';
     const disclosure = ad.disclosureText || 'Sponsored';
 
     // Styles based on placement - UPDATED SIZES & STYLES

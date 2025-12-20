@@ -92,6 +92,7 @@ export function ImageUpload({ value, onChange, onUpload }: ImageUploadProps) {
             src={preview}
             alt="Preview"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
             className="object-cover"
           />
           {isUploading && (
