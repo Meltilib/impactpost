@@ -5,17 +5,18 @@ import { fetchAuthors, fetchCategories, fetchAdvertisementOptions } from '@/lib/
 export const dynamic = 'force-dynamic';
 
 interface NewArticlePageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function NewArticlePage({ searchParams }: NewArticlePageProps) {
   await requireAdminOrEditor();
+  const resolvedSearchParams = await searchParams;
   const [authors, categories, advertisements] = await Promise.all([
     fetchAuthors(),
     fetchCategories(),
     fetchAdvertisementOptions(),
   ]);
-  const sponsorId = typeof searchParams.sponsorId === 'string' ? searchParams.sponsorId : undefined;
+  const sponsorId = typeof resolvedSearchParams.sponsorId === 'string' ? resolvedSearchParams.sponsorId : undefined;
 
   return (
     <div className="max-w-4xl mx-auto">

@@ -145,7 +145,6 @@ export function AdvertisementForm({ mode, initialData = {} }: AdvertisementFormP
 
             if (result.success) {
                 router.push('/admin/advertisements');
-                router.refresh();
             } else {
                 alert(result.error || 'Failed to save advertisement');
             }
