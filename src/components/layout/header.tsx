@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { NAV_ITEMS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { useBookmarks } from '@/hooks/use-bookmarks';
+import { SearchOverlay } from './search-overlay';
 
 function BookmarkHeaderAction() {
   const { bookmarks, isInitialized } = useBookmarks();
@@ -28,6 +29,7 @@ function BookmarkHeaderAction() {
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const pathname = usePathname();
 
   return (
@@ -73,8 +75,9 @@ export function Header() {
           <div className="flex items-center gap-3">
             <BookmarkHeaderAction />
             <button
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               aria-label="Search"
+              onClick={() => setIsSearchOpen(true)}
             >
               <Search size={20} />
             </button>
@@ -110,6 +113,7 @@ export function Header() {
           </nav>
         </div>
       )}
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

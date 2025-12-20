@@ -16,6 +16,7 @@ import {
   communitySectionQuery,
   articlesBySlugsQuery,
   activeAdQuery,
+  searchArticlesQuery,
 } from './queries';
 import {
   mapSanityArticle,
@@ -398,4 +399,30 @@ export async function fetchActiveAd(placement: string): Promise<any | null> {
   }
 
   return null;
+}
+
+// Fetch articles by search query
+export async function fetchArticlesByQuery(query: string): Promise<Story[]> {
+  if (!query) return [];
+
+  const sanityClient = await getClientForFetch();
+
+  if (sanityClient) {
+    try {
+      const articles: SanityArticle[] = await sanityClient.fetch(
+        searchArticlesQuery as string,
+        { query: `*${query}*` } as Record<string, string>
+      );
+      if (articles && articles.length > 0) {
+        return mapSanityArticles(articles);
+      }
+    } catch (error) {
+      console.error(`Error searching articles for query "${query}":`, error);
+      logSanityFallback('searchArticles', error);
+    }
+  } else {
+    logSanityFallback('searchArticles', 'client unavailable');
+  }
+
+  return [];
 }

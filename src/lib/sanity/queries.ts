@@ -489,3 +489,42 @@ export const activeAdQuery = groq`
     placement
   }
 `;
+
+// Fetch articles by search query
+export const searchArticlesQuery = groq`
+  *[_type == "article" && defined(slug.current) && (
+    title match $query || 
+    subtitle match $query || 
+    excerpt match $query || 
+    pt::text(body) match $query ||
+    tags[] match $query
+  )] | order(publishedAt desc) {
+    _id,
+    title,
+    subtitle,
+    "slug": slug.current,
+    excerpt,
+    publishedAt,
+    isFeatured,
+    tags,
+    mainImage {
+      asset->{
+        _id,
+        url
+      },
+      alt
+    },
+    author->{
+      _id,
+      name,
+      role
+    },
+    category->{
+      _id,
+      title,
+      "slug": slug.current,
+      color,
+      textColor
+    }
+  }
+`;
