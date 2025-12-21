@@ -1,9 +1,31 @@
 # IMPACT POST Implementation Summary
 
 ## Quick Stats
-- **Total Implementations**: 12
+- **Total Implementations**: 13
 - **Success Rate**: 100%
-- **Focus Areas**: 🔧 Engineering (60%), 🔐 Auth (18%), 📦 CMS (9%), 🎨 Content Design (7%), 🧩 Ops (6%)
+- **Focus Areas**: 🔧 Engineering (62%), 🔐 Auth (15%), 📦 CMS (8%), 🎨 Content Design (8%), 🧩 Ops (7%)
+
+---
+
+🚀 #13 2025-12-20 | Resend API Refactoring & Subscription Logic | ✅ 60m | 🔧engineering | 🛡️security | 📁5f
+   • Centralized Resend configuration and headers into a dedicated library.
+   • Implemented "pre-flight" check to prevent duplicate welcome emails.
+   • Added auto-resubscription for previously unsubscribed contacts.
+   • Created health diagnostics endpoint for newsletter API status.
+
+   📁 **Files Created** (2):
+   - src/lib/resend/config.ts - Centralized configuration logic
+   - src/app/api/health/newsletter/route.ts - API status diagnostics
+
+   📁 **Files Modified** (3):
+   - src/app/api/newsletter/subscribe/route.ts - Pre-flight check + resubscribe logic
+   - src/app/api/admin/subscribers/route.ts - Switched to unified headers and config
+   - src/app/admin/subscribers/page.tsx - Enhanced feedback for resubscription
+
+   ⚙️ **Key Features**:
+   - **Pre-flight Check**: Verified contact status before creating to avoid redundant actions.
+   - **Resubscribe Flow**: Automatic reactivation of unsubscribed emails via patching.
+   - **Diagnostic visibility**: Health endpoint for environment variable verification.
 
 ---
 

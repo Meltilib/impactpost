@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isValidEmail, fetchWithTimeout } from '@/lib/utils';
 import { newsletterRateLimiter, getClientIp, checkRateLimit } from '@/lib/rate-limit';
+import { getResendEnv, buildResendHeaders, getContactUrl } from '@/lib/resend/config';
 
 export async function POST(req: Request) {
     try {
@@ -35,20 +36,59 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
         }
 
-        const apiKey = process.env.RESEND_API_KEY;
-        const audienceId = process.env.RESEND_AUDIENCE_ID;
+        const { apiKey, audienceId, configured } = getResendEnv();
 
-        if (apiKey && audienceId) {
-            // Performance optimization: Instead of fetching ALL contacts to check existence (O(n)),
-            // we use "try create, handle duplicate" pattern (O(1))
+        if (configured) {
+            // 1) Pre-flight: check if contact already exists to avoid duplicate welcomes
+            const contactUrl = getContactUrl(email);
+            const existingRes = await fetchWithTimeout(
+                contactUrl,
+                { headers: buildResendHeaders(apiKey!) },
+                8000
+            );
+
+            if (existingRes.ok) {
+                const existing = await existingRes.json().catch(() => ({}));
+                const wasUnsubscribed = existing?.unsubscribed === true;
+
+                // If previously unsubscribed, resubscribe in place
+                if (wasUnsubscribed) {
+                    await fetchWithTimeout(
+                        contactUrl,
+                        {
+                            method: 'PATCH',
+                            headers: buildResendHeaders(apiKey!),
+                            body: JSON.stringify({ unsubscribed: false })
+                        },
+                        8000
+                    ).catch(() => null);
+                }
+
+                return NextResponse.json({
+                    success: true,
+                    message: wasUnsubscribed
+                        ? 'Welcome back! You have been re-subscribed.'
+                        : 'You are already subscribed!',
+                    isDuplicate: true,
+                    mock: false
+                });
+            }
+
+            if (existingRes.status !== 404) {
+                const errText = await existingRes.text().catch(() => '');
+                console.error('[Newsletter] Contact lookup failed:', existingRes.status, errText);
+                return NextResponse.json(
+                    { error: 'Could not verify subscription status. Please try again.' },
+                    { status: 502 }
+                );
+            }
+
+            // 2) Create new contact
             const res = await fetchWithTimeout(
                 `https://api.resend.com/audiences/${audienceId}/contacts`,
                 {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: buildResendHeaders(apiKey!),
                     body: JSON.stringify({
                         email,
                         unsubscribed: false
@@ -58,23 +98,9 @@ export async function POST(req: Request) {
 
             const responseData = await res.json().catch(() => ({}));
 
-            // Resend returns 200 for existing contacts, 201 for new
-            const isNewSubscriber = res.status === 201;
-            const isDuplicate = res.status === 200 || res.status === 409;
-
-            if (isDuplicate) {
-                console.log(`[Newsletter] Contact already exists: ${email}`);
-                return NextResponse.json({
-                    success: true,
-                    message: 'You are already subscribed!',
-                    isDuplicate: true,
-                    mock: false
-                });
-            }
-
             if (!res.ok) {
                 const message = typeof responseData?.message === 'string' ? responseData.message : '';
-                // Double-check for duplicate indicators in error message
+                // Treat duplicate indicators as success (defensive)
                 if (/already|exists/i.test(message)) {
                     return NextResponse.json({
                         success: true,
@@ -92,7 +118,7 @@ export async function POST(req: Request) {
             }
 
             // Successfully created new subscriber - send welcome email
-            if (isNewSubscriber) {
+            if (res.status === 201) {
                 console.log(`[Newsletter] New subscriber added: ${email}`);
                 try {
                     const { sendWelcomeEmail } = await import('@/lib/email/send-welcome-email');
@@ -110,10 +136,8 @@ export async function POST(req: Request) {
             });
         }
 
-        if (!apiKey) {
-            console.warn('[Newsletter] RESEND_API_KEY not configured.');
-        } else {
-            console.warn('[Newsletter] RESEND_AUDIENCE_ID not set.');
+        if (!configured) {
+            console.warn('[Newsletter] Resend is not configured. Returning mock success.');
         }
 
         return NextResponse.json({
@@ -136,4 +160,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
     }
 }
-

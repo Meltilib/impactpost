@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUserRole } from '@/lib/auth/permissions';
 import { isValidEmail, fetchWithTimeout } from '@/lib/utils';
 import { adminRateLimiter, getClientIp, checkRateLimit } from '@/lib/rate-limit';
+import { getResendEnv, shouldUseResendMock, resendConfigMessage, buildResendHeaders, getContactUrl } from '@/lib/resend/config';
 
 type SubscriberStatus = 'subscribed' | 'unsubscribed';
 
@@ -50,12 +51,6 @@ async function requireAdmin(req: Request) {
     return null;
 }
 
-function getResendConfig() {
-    const apiKey = process.env.RESEND_API_KEY;
-    const audienceId = process.env.RESEND_AUDIENCE_ID;
-    return { apiKey, audienceId };
-}
-
 function getContactsListUrl(audienceId?: string) {
     return audienceId
         ? `https://api.resend.com/audiences/${audienceId}/contacts`
@@ -68,26 +63,55 @@ function getContactsCreateUrl(audienceId?: string) {
         : 'https://api.resend.com/contacts';
 }
 
-function getContactUrl(contactIdOrEmail: string) {
-    return `https://api.resend.com/contacts/${encodeURIComponent(contactIdOrEmail)}`;
+function getMockSubscribers(): Subscriber[] {
+    const now = new Date();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    return [
+        {
+            id: 'demo-1',
+            email: 'demo@impactpost.ca',
+            created_at: new Date(now.getTime() - oneDayMs).toISOString(),
+            status: 'subscribed',
+            unsubscribed_at: null
+        },
+        {
+            id: 'demo-2',
+            email: 'reader@example.com',
+            created_at: new Date(now.getTime() - 7 * oneDayMs).toISOString(),
+            status: 'subscribed',
+            unsubscribed_at: null
+        },
+        {
+            id: 'demo-3',
+            email: 'former@sample.com',
+            created_at: new Date(now.getTime() - 30 * oneDayMs).toISOString(),
+            status: 'unsubscribed',
+            unsubscribed_at: new Date(now.getTime() - 15 * oneDayMs).toISOString()
+        }
+    ];
 }
 export async function GET(req: Request) {
     const authError = await requireAdmin(req);
     if (authError) return authError;
 
-    const apiKey = process.env.RESEND_API_KEY;
-    const audienceId = process.env.RESEND_AUDIENCE_ID;
+    const { apiKey, audienceId, configured, missing } = getResendEnv();
+    const allowMock = shouldUseResendMock(configured);
 
-    if (!apiKey) {
-        // ... (mock data 72-81)
+    if (!configured) {
+        const message = resendConfigMessage(missing);
+        if (allowMock) {
+            return NextResponse.json(
+                { subscribers: getMockSubscribers(), mock: true, error: message },
+                { status: 200, headers: { 'Cache-Control': 'no-store' } }
+            );
+        }
+        return NextResponse.json({ error: message }, { status: 503 });
     }
 
     try {
         const listUrl = getContactsListUrl(audienceId);
         const res = await fetchWithTimeout(listUrl, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: buildResendHeaders(apiKey!),
             cache: 'no-store'
         }, 15000);
 
@@ -115,9 +139,10 @@ export async function POST(req: Request) {
     const authError = await requireAdmin(req);
     if (authError) return authError;
 
-    const { apiKey, audienceId } = getResendConfig();
-    if (!apiKey) {
-        return NextResponse.json({ error: 'Resend API key not configured.' }, { status: 400 });
+    const { apiKey, audienceId, configured, missing } = getResendEnv();
+    if (!configured) {
+        const message = resendConfigMessage(missing);
+        return NextResponse.json({ error: message }, { status: 503 });
     }
 
     try {
@@ -129,10 +154,7 @@ export async function POST(req: Request) {
         const createUrl = getContactsCreateUrl(audienceId);
         const res = await fetchWithTimeout(createUrl, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
+            headers: buildResendHeaders(apiKey!),
             body: JSON.stringify({ email, unsubscribed: false })
         }, 10000);
 
@@ -162,9 +184,10 @@ export async function PATCH(req: Request) {
     const authError = await requireAdmin(req);
     if (authError) return authError;
 
-    const { apiKey } = getResendConfig();
-    if (!apiKey) {
-        return NextResponse.json({ error: 'Resend API key not configured.' }, { status: 400 });
+    const { apiKey, configured, missing } = getResendEnv();
+    if (!configured) {
+        const message = resendConfigMessage(missing);
+        return NextResponse.json({ error: message }, { status: 503 });
     }
 
     try {
@@ -186,10 +209,7 @@ export async function PATCH(req: Request) {
 
         const res = await fetch(getContactUrl(target), {
             method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
+            headers: buildResendHeaders(apiKey!),
             body: JSON.stringify({ unsubscribed: nextStatus === 'unsubscribed' })
         });
 
@@ -211,9 +231,10 @@ export async function DELETE(req: Request) {
     const authError = await requireAdmin(req);
     if (authError) return authError;
 
-    const { apiKey } = getResendConfig();
-    if (!apiKey) {
-        return NextResponse.json({ error: 'Resend API key not configured.' }, { status: 400 });
+    const { apiKey, configured, missing } = getResendEnv();
+    if (!configured) {
+        const message = resendConfigMessage(missing);
+        return NextResponse.json({ error: message }, { status: 503 });
     }
 
     try {
@@ -226,7 +247,7 @@ export async function DELETE(req: Request) {
         const res = await fetch(getContactUrl(target), {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${apiKey}`
+                Authorization: `Bearer ${apiKey}`
             }
         });
 

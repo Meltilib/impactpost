@@ -33,6 +33,7 @@ export default function SubscribersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isMock, setIsMock] = useState(false);
+    const [configIssue, setConfigIssue] = useState<string | null>(null);
     const [notice, setNotice] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
     // Local State for UI
@@ -51,13 +52,18 @@ export default function SubscribersPage() {
         setLoading(true);
         setError(null);
         setNotice(null);
+        setConfigIssue(null);
         try {
             const res = await fetch('/api/admin/subscribers', { cache: 'no-store' });
+            const data = await res.json().catch(() => ({}));
+
             if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error(data?.error || 'Failed to fetch');
+                const message = data?.error || 'Failed to fetch';
+                if (res.status === 503) {
+                    setConfigIssue(message);
+                }
+                throw new Error(message);
             }
-            const data = await res.json();
 
             if (Array.isArray(data.subscribers)) {
                 setSubscribers(data.subscribers);
@@ -266,6 +272,17 @@ export default function SubscribersPage() {
                     </Button>
                 </div>
             </div>
+
+            {configIssue && (
+                <div className="mb-6 border border-yellow-300 bg-yellow-50 text-yellow-800 rounded-lg p-4 flex gap-3 items-start">
+                    <AlertCircle size={18} className="mt-0.5" />
+                    <div>
+                        <p className="font-bold text-sm">Resend not configured</p>
+                        <p className="text-sm">{configIssue}</p>
+                        <p className="text-xs mt-1 text-yellow-700">Set RESEND_API_KEY and RESEND_AUDIENCE_ID to see live data.</p>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-white border rounded-lg shadow-sm p-4 mb-6 flex flex-col lg:flex-row gap-4 lg:items-end">
                 <div className="flex-1">
