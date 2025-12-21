@@ -1,4 +1,4 @@
-import { welcomeEmailTemplate } from './welcome-email-template';
+import { welcomeEmailTemplate, welcomeEmailPlaintext } from './welcome-email-template';
 
 /**
  * Delay utility for rate limiting
@@ -46,10 +46,18 @@ export async function sendWelcomeEmail(email: string) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    from: 'Impact Post <newsletter@impactpost.ca>', // Ensure this domain is verified in Resend
+                    from: 'Impact Post <newsletter@impactpost.ca>',
                     to: email,
-                    subject: 'Welcome to Impact Post! 🎉',
+                    subject: 'Welcome to Impact Post!',
                     html: welcomeEmailTemplate(email),
+                    text: welcomeEmailPlaintext(email),
+                    reply_to: 'support@impactpost.ca',
+                    headers: {
+                        'List-Unsubscribe': `<mailto:unsubscribe@impactpost.ca?subject=Unsubscribe>, <https://impactpost.ca/api/email/unsubscribe?email=${encodeURIComponent(email)}>`,
+                        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                        'X-Entity-Ref-ID': `welcome-${email.replace(/[@.]/g, '-')}-${Date.now()}`,
+                        'X-Mailer': 'IMPACT-POST/1.0',
+                    },
                     tags: [
                         {
                             name: 'category',

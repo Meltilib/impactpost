@@ -45,6 +45,55 @@ export function isValidEmail(email: string) {
 }
 
 /**
+ * Suggests a likely correction for common email typos (e.g., .comm -> .com, gamil.com -> gmail.com).
+ * Returns the corrected email or null if no safe suggestion is found.
+ */
+export function suggestEmailCorrection(email: string): string | null {
+  if (!email || typeof email !== 'string') return null;
+
+  const lower = email.toLowerCase().trim();
+  const atIndex = lower.indexOf('@');
+  if (atIndex === -1) return null;
+
+  const local = lower.slice(0, atIndex);
+  const domain = lower.slice(atIndex + 1);
+
+  const domainCorrections: Record<string, string> = {
+    'gamil.com': 'gmail.com',
+    'gmai.com': 'gmail.com',
+    'gmail.con': 'gmail.com',
+    'hotmail.co': 'hotmail.com',
+    'hotnail.com': 'hotmail.com',
+    'yaho.com': 'yahoo.com',
+    'yaho.co': 'yahoo.com',
+    'outlok.com': 'outlook.com',
+    'icloud.co': 'icloud.com',
+  };
+
+  const tldCorrections: Record<string, string> = {
+    '.comm': '.com',
+    '.con': '.com',
+    '.cmo': '.com',
+    '.cim': '.com',
+    '.coom': '.com',
+  };
+
+  // Exact domain corrections
+  if (domainCorrections[domain]) {
+    return `${local}@${domainCorrections[domain]}`;
+  }
+
+  // TLD typos
+  for (const [bad, good] of Object.entries(tldCorrections)) {
+    if (domain.endsWith(bad)) {
+      return `${local}@${domain.replace(new RegExp(`${bad}$`), good)}`;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Fetch with timeout using AbortController
  */
 export async function fetchWithTimeout(

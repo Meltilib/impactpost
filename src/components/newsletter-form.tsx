@@ -20,9 +20,13 @@ export function NewsletterForm({
     const [honeypot, setHoneypot] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'duplicate' | 'error'>('idle');
     const [message, setMessage] = useState('');
+    const [suggestion, setSuggestion] = useState<string | null>(null);
+    const [submittedEmail, setSubmittedEmail] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        setSuggestion(null);
 
         if (!isValidEmail(email)) {
             setStatus('error');
@@ -45,6 +49,12 @@ export function NewsletterForm({
             const data = await res.json();
 
             if (!res.ok) {
+                if (data?.suggestion) {
+                    setSuggestion(data.suggestion);
+                    setStatus('error');
+                    setMessage('That email looks mistyped. Tap to accept the suggestion below.');
+                    return;
+                }
                 throw new Error(data.error || 'Something went wrong');
             }
 
@@ -57,6 +67,7 @@ export function NewsletterForm({
 
             setStatus(isDuplicate ? 'duplicate' : 'success');
             setMessage(apiMessage);
+            setSubmittedEmail(email);
             setEmail('');
 
             // Track successful signup (non-duplicate)
@@ -80,7 +91,7 @@ export function NewsletterForm({
                     <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand-purple mb-2">
                         <CheckCircle size={28} />
                     </div>
-                    <div>
+                    <div className="text-center">
                         <h4 className="text-2xl font-heavy italic text-white mb-2">
                             {status === 'duplicate' ? "YOU'RE ALREADY SUBSCRIBED" : "YOU'RE IN!"}
                         </h4>
@@ -89,15 +100,21 @@ export function NewsletterForm({
                                 ? "You're already on the list."
                                 : "Thanks for subscribing. Welcome to the community.")}
                         </p>
+                        {submittedEmail && (
+                            <p className="text-white/70 text-sm mt-2">
+                                Sent to <span className="font-bold">{submittedEmail}</span>
+                            </p>
+                        )}
                     </div>
                     <button
                         onClick={() => {
                             setStatus('idle');
                             setMessage('');
+                            if (submittedEmail) setEmail(submittedEmail);
                         }}
                         className="text-xs text-white/60 hover:text-white mt-4 underline decoration-dashed"
                     >
-                        Subscribe another email
+                        Fix email / subscribe another
                     </button>
                 </div>
             </div>
@@ -147,6 +164,21 @@ export function NewsletterForm({
                         <AlertCircle size={16} />
                         <span>{message}</span>
                     </div>
+                )}
+
+                {suggestion && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEmail(suggestion);
+                            setSuggestion(null);
+                            setMessage('');
+                            setStatus('idle');
+                        }}
+                        className="text-left text-sm font-bold text-white underline decoration-dashed"
+                    >
+                        Use suggested email: {suggestion}
+                    </button>
                 )}
 
                 <p className="text-[10px] text-white/50 mt-2">
