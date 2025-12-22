@@ -27,8 +27,9 @@ This session focused on adding key engagement features: allowing users to bookma
     - **Stats**: Total Subscribers, Active, New this Month.
     - **Controls**: Sorting (Date), Filtering (Status), and CSV Export.
 - **Broadcast Feature**:
-    - **"Send to Subscribers" Button**: Added to the Article Editor.
-    - **Batch Sending**: `/api/admin/newsletter/send` fetches the article and sends emails via Resend (using BCC for privacy/efficiency).
+- **"Send to Subscribers" Button**: Added to the Article Editor.
+- **Batch Sending**: `/api/admin/newsletter/send` fetches the article and sends emails via Resend (using BCC for privacy/efficiency).
+- **Resend Pagination Guard**: Contacts pagination is capped at 100 (Resend’s documented max) to avoid 422 validation errors during broadcast.
 
 ## Files Created
 - `src/components/newsletter-form.tsx`

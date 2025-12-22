@@ -3,6 +3,7 @@ import { client } from '@/lib/sanity/client';
 import { articleBySlugQuery } from '@/lib/sanity/queries';
 import { requireAdmin } from '@/lib/auth/permissions';
 import { fetchWithTimeout, escapeHtml } from '@/lib/utils';
+import { getResendEnv, resendConfigMessage, shouldUseResendMock, buildResendHeaders } from '@/lib/resend/config';
 
 // Timeout for email API calls (30 seconds per batch)
 const EMAIL_TIMEOUT_MS = 30000;
@@ -89,28 +90,39 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Article not found' }, { status: 404 });
         }
 
-        const apiKey = process.env.RESEND_API_KEY;
-        const audienceId = process.env.RESEND_AUDIENCE_ID;
+        const { apiKey, audienceId, configured, missing } = getResendEnv();
+        const allowMock = shouldUseResendMock(configured);
 
-        if (!apiKey) {
-            return NextResponse.json({ success: true, message: 'Mock Broadcast: API Key not configured.' });
+        if (!configured) {
+            const message = resendConfigMessage(missing);
+            // In dev, allow a mock success so editors can test the button without real email sends.
+            if (allowMock) {
+                return NextResponse.json({
+                    success: true,
+                    mock: true,
+                    message: `Mock broadcast: ${message}`
+                });
+            }
+            return NextResponse.json({ error: message }, { status: 503 });
         }
 
         // 2. Fetch subscribers with basic pagination to avoid huge payloads/timeouts
         const allEmails: string[] = [];
-        const pageSize = 200;
+        // Resend enforces 1-100 for pagination; keep hard-capped to avoid 422 validation errors
+        const pageSize = 100;
         let offset = 0;
         let hasMore = true;
 
+        console.info(`[Broadcast] Fetching audience contacts | audienceId=${audienceId} pageSize=${pageSize}`);
+
         try {
             while (hasMore) {
-                const contactsUrl = audienceId
-                    ? `https://api.resend.com/audiences/${audienceId}/contacts?limit=${pageSize}&offset=${offset}`
-                    : `https://api.resend.com/audiences/contacts?limit=${pageSize}&offset=${offset}`;
+                // Audience is required for broadcast; with valid config this URL is always defined.
+                const contactsUrl = `https://api.resend.com/audiences/${audienceId}/contacts?limit=${pageSize}&offset=${offset}`;
 
                 const contactsRes = await fetchWithTimeout(
                     contactsUrl,
-                    { headers: { 'Authorization': `Bearer ${apiKey}` } },
+                    { headers: buildResendHeaders(apiKey!) },
                     EMAIL_TIMEOUT_MS // Use email timeout for fetching contacts too
                 );
 
@@ -146,7 +158,7 @@ export async function POST(req: Request) {
         // 3. Prepare Email Content
         const safeTitle = escapeHtml(article.title || '');
         const safeExcerpt = escapeHtml(article.excerpt || '');
-        const subject = `New Story: ${safeTitle}`;
+        const subject: string = `New Story: ${safeTitle}`;
         const imageUrl = article.mainImage?.asset?.url;
 
         const htmlContent = `
@@ -176,7 +188,7 @@ export async function POST(req: Request) {
             const batch = batches[i];
             console.log(`[Broadcast] Sending batch ${i + 1}/${batches.length} (${batch.length} recipients)`);
 
-            const result = await sendEmailBatch(apiKey, batch, subject, htmlContent);
+            const result = await sendEmailBatch(apiKey!, batch, subject, htmlContent);
             results.push({ batch: i + 1, ...result });
 
             if (!result.success) {
