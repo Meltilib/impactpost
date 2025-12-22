@@ -76,6 +76,9 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       description: story.excerpt,
       images: [story.imageUrl],
     },
+    alternates: {
+      canonical: `/news/${story.slug}`,
+    },
   };
 }
 

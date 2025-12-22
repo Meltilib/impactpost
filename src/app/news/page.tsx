@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     title: 'Latest News | IMPACT POST',
     description: 'Breaking news and updates from across the diaspora.',
   },
+  alternates: {
+    canonical: '/news',
+  },
 };
 
 // Enable ISR - revalidate every 60 seconds
