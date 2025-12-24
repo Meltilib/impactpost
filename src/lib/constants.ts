@@ -4,7 +4,7 @@ export const SITE_CONFIG = {
   name: 'IMPACT POST',
   tagline: 'Canadian-Somali News & Perspectives',
   description: 'Leading voice of the Canadian-Somali diaspora. Independent news, youth stories, and community perspectives from Toronto to Vancouver. Stay informed.',
-  url: 'https://impactpost.ca',
+  url: 'https://www.impactpost.ca',
   twitterHandle: '@impactpost',
   locale: 'en_CA',
   keywords: [

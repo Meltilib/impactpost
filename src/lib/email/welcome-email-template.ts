@@ -17,12 +17,12 @@ What to expect:
 
 Stay tuned for our next update. In the meantime, feel free to explore our latest stories.
 
-Visit our website: https://impactpost.ca
+Visit our website: https://www.impactpost.ca
 
 ---
 
 © ${year} Impact Post. All rights reserved.
-Manage your subscription: https://impactpost.ca/unsubscribe?email=${encodeURIComponent(email)}
+Manage your subscription: https://www.impactpost.ca/unsubscribe?email=${encodeURIComponent(email)}
 
 Questions? Contact us at support@impactpost.ca
 ${subscriptionReason}
@@ -167,13 +167,13 @@ export const welcomeEmailTemplate = (email: string) => {
             </p>
 
             <div style="text-align: center; margin-top: 30px;">
-                <a href="https://impactpost.ca" class="cta-button">Visit Website</a>
+                <a href="https://www.impactpost.ca" class="cta-button">Visit Website</a>
             </div>
         </div>
         <div class="footer">
             <p>&copy; ${year} Impact Post. All rights reserved.</p>
             <p>
-                <a href="https://impactpost.ca/unsubscribe?email=${encodeURIComponent(email)}">Manage subscription</a>
+                <a href="https://www.impactpost.ca/unsubscribe?email=${encodeURIComponent(email)}">Manage subscription</a>
             </p>
             <p>${subscriptionReason}</p>
             <p>Mailing address: ${mailingAddress}</p>

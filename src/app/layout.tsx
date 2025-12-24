@@ -133,7 +133,7 @@ export default function RootLayout({
 
   return (
     <html
-      lang="en"
+      lang="en-CA"
       className={`${inter.variable} ${archivoBlack.variable} ${spaceGrotesk.variable}`}
     >
       <head>

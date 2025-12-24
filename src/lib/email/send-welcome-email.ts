@@ -53,7 +53,7 @@ export async function sendWelcomeEmail(email: string) {
                     text: welcomeEmailPlaintext(email),
                     reply_to: 'support@impactpost.ca',
                     headers: {
-                        'List-Unsubscribe': `<mailto:unsubscribe@impactpost.ca?subject=Unsubscribe>, <https://impactpost.ca/api/email/unsubscribe?email=${encodeURIComponent(email)}>`,
+                        'List-Unsubscribe': `<mailto:unsubscribe@impactpost.ca?subject=Unsubscribe>, <https://www.impactpost.ca/api/email/unsubscribe?email=${encodeURIComponent(email)}>`,
                         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                         'X-Entity-Ref-ID': `welcome-${email.replace(/[@.]/g, '-')}-${Date.now()}`,
                         'X-Mailer': 'IMPACT-POST/1.0',
