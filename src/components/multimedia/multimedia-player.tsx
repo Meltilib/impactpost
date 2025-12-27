@@ -100,7 +100,7 @@ export function MultimediaPlayer({
                         src={thumbnailUrl}
                         alt={title}
                         fill
-                        className="object-cover"
+                        className="object-cover object-top"
                         sizes="(max-width: 1024px) 100vw, 66vw"
                     />
                 </div>

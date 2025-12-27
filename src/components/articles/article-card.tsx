@@ -44,7 +44,7 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
                 src={story.imageUrl}
                 alt={story.title}
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 sizes="96px"
               />
             </div>
@@ -70,8 +70,7 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
           alt={story.title}
           fill
           className={cn(
-            "object-cover group-hover:scale-105 transition-transform duration-500",
-            featured ? "object-top" : "object-center"
+            "object-cover group-hover:scale-105 transition-transform duration-500 object-top"
           )}
           sizes={featured ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 100vw, 25vw'}
           priority={featured}
