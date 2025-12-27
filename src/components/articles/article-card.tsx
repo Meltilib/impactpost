@@ -15,8 +15,8 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
 
   if (minimal) {
     return (
-      <Link 
-        href={articleUrl} 
+      <Link
+        href={articleUrl}
         className="group block border-b-2 border-black py-4 hover:bg-white transition-colors"
       >
         <div className="flex justify-between items-start gap-4">
@@ -55,8 +55,8 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
   }
 
   return (
-    <Link 
-      href={articleUrl} 
+    <Link
+      href={articleUrl}
       className={cn(
         'group block h-full flex flex-col'
       )}
@@ -69,7 +69,10 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
           src={story.imageUrl}
           alt={story.title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          className={cn(
+            "object-cover group-hover:scale-105 transition-transform duration-500",
+            featured ? "object-top" : "object-center"
+          )}
           sizes={featured ? '(max-width: 768px) 100vw, 66vw' : '(max-width: 768px) 100vw, 25vw'}
           priority={featured}
         />
@@ -82,7 +85,7 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
           </span>
         </div>
       </div>
-      
+
       <div className={cn('flex flex-col flex-grow')}>
         <div className="flex items-center gap-2 mb-2">
           <div className="relative w-8 h-8 rounded-full border border-black overflow-hidden">
@@ -98,14 +101,14 @@ export function ArticleCard({ story, featured = false, minimal = false }: Articl
             <span className="block font-bold">{story.author.name}</span>
           </div>
         </div>
-        
+
         <h3 className={cn(
           'font-display font-bold leading-tight mb-3 group-hover:text-brand-purple transition-colors',
           featured ? 'text-4xl md:text-5xl' : 'text-xl'
         )}>
           {story.title}
         </h3>
-        
+
         <p className={cn(
           'text-gray-700 mb-4 line-clamp-3',
           featured ? 'text-xl' : 'text-sm'
