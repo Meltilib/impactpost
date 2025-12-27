@@ -7,8 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getCategoryColor(category: string): string {
   const cat = category.toLowerCase();
-  if (cat.includes('community') || cat.includes('voices') || cat.includes('culture') || cat.includes('purple')) {
-    if (cat.includes('yellow') || cat.includes('culture')) return 'bg-brand-yellow text-black';
+
+  if (cat.includes('culture')) return 'bg-brand-green text-white';
+
+  if (cat.includes('community') || cat.includes('voices') || cat.includes('purple')) {
+    if (cat.includes('yellow')) return 'bg-brand-yellow text-black';
     return 'bg-brand-purple text-white';
   }
   if (cat.includes('youth') || cat.includes('teal')) return 'bg-brand-teal text-black';
